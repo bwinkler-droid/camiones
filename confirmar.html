@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>TPR · Confirmación de camiones</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#1c2530;--card:#fff;--line:#d9dee5;--mut:#6b7684;--acc:#1f6feb;--bad:#d64545;--ok:#2e9e5b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--fg:#e6eaef;--card:#1d232a;--line:#323b45;--mut:#97a3b0;--acc:#5b9bff;--bad:#ff7b7b;--ok:#52c27f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14181d;--fg:#e6eaef;--card:#1d232a;--line:#323b45;--mut:#97a3b0;--acc:#5b9bff;--bad:#ff7b7b;--ok:#52c27f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button:disabled{opacity:.45;cursor:not-allowed}
+#tstbar{position:sticky;top:0;z-index:50;background:repeating-linear-gradient(135deg,#f59e0b 0 14px,#fbbf24 14px 28px);color:#1f1300;font-weight:800;text-align:center;padding:6px 10px;font-size:13px;letter-spacing:.02em;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.rqw{max-width:620px;margin:0 auto;padding:14px 14px 130px;font-size:18px;line-height:1.45;color:var(--fg)}
+.rqw *{box-sizing:border-box}
+.rqtop{background:linear-gradient(135deg,#1f6feb,#0ea5e9);color:#fff;border-radius:16px;padding:16px 18px;margin:4px 0 14px;box-shadow:0 4px 14px rgba(31,111,235,.3)}
+.rqtop .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;font-weight:700}
+.rqtop .op{font-size:26px;font-weight:800;margin:4px 0 2px}.rqtop .bq{display:inline-block;background:rgba(255,255,255,.22);border-radius:8px;padding:1px 8px;font-size:14px;font-weight:700;margin-left:4px;vertical-align:middle}
+.rqtop .hr{font-size:18px;margin-top:8px;display:grid;grid-template-columns:auto 1fr;gap:2px 10px}.rqtop .hr span{white-space:nowrap}.rqtop .hr .l{opacity:.85;font-size:15px;align-self:center}
+.rqdh{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;background:rgba(31,111,235,.10);border-radius:12px;padding:10px 12px;margin:10px 0 4px}
+.rqdh .l{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}.rqdh .v{font-size:19px;font-weight:700;white-space:nowrap}.rqdh .v b{color:#3b82f6}
+.rqdh .tot{grid-column:1/-1;font-size:15px;color:var(--mut)}.rqtop .who{display:inline-block;margin-top:10px;background:#fff;color:#1f4fbf;border-radius:20px;padding:3px 12px;font-size:13px;font-weight:800}
+.rqhelp{font-size:16px;color:var(--mut);margin:0 2px 6px}
+.rqu{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:6px solid var(--line)}
+.rqu.y{border-left-color:#22c55e}.rqu.n{border-left-color:#ef4444}
+.rqt{font-size:24px;font-weight:800;letter-spacing:.02em}.rqt small{font-size:14px;font-weight:600;color:var(--mut);letter-spacing:0;margin-left:6px}
+.rqm{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}.rqm span{background:rgba(127,127,127,.14);border-radius:20px;padding:5px 12px;font-size:15px;font-weight:600}
+.rqm .h{background:rgba(31,111,235,.15);color:#3b82f6}
+.rqp{font-size:17px;margin-top:6px;color:var(--mut)}.rqp b{color:var(--fg)}
+.rqst{display:inline-block;margin-top:8px;font-size:13px;font-weight:700;border-radius:8px;padding:3px 10px}.rqst.y{background:rgba(34,197,94,.15);color:#16a34a}.rqst.n{background:rgba(239,68,68,.15);color:#dc2626}
+.rqo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 6px}
+.rqo label{display:flex;justify-content:center;align-items:center;gap:6px;border:2px solid var(--line);border-radius:14px;padding:0 6px;min-height:68px;font-size:21px;font-weight:800;cursor:pointer;margin:0;user-select:none}
+.rqo input{position:absolute;opacity:0;pointer-events:none}
+.rqo label.on.y{border-color:#22c55e;background:rgba(34,197,94,.14);color:#16a34a}.rqo label.on.n{border-color:#ef4444;background:rgba(239,68,68,.12);color:#dc2626}
+.rqf{margin-top:12px}.rqf .tt{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:12px 0 2px}
+.rqf label{display:block;font-size:16px;font-weight:600;margin:8px 0 4px;color:var(--fg)}
+.rqf input,.rqf select{display:block;width:100%;font-size:20px;padding:14px;min-height:56px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.rqf input:focus,.rqf select:focus{outline:2px solid #3b82f6;border-color:transparent}
+.rqd{display:grid;grid-template-columns:1.6fr 1fr;gap:8px}@media (max-width:480px){.rqd{grid-template-columns:1fr}}
+.rqbar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 30%);display:flex;justify-content:center}
+.rqbar button{width:100%;max-width:620px;min-height:64px;padding:16px;font-size:21px;font-weight:800;border-radius:14px;border:0;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 6px 18px rgba(22,163,74,.35);cursor:pointer}
+.rqbar button:disabled{opacity:.6}
+.rqer{color:#dc2626;font-weight:700;font-size:17px;margin:10px 2px}
+.rqok{background:rgba(34,197,94,.14);border:2px solid #22c55e;border-radius:14px;padding:16px;font-size:18px;margin:6px 0 10px}
+.rqfoot{font-size:14px;color:var(--mut);text-align:center;margin-top:18px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip2.ye{color:#f0c94a}}
+</style></head>
+<body>
+<script>
+/* Página pública para que los transportes confirmen los camiones (se abre con el link que manda Logística por WhatsApp).
+   Vive fuera de script.google.com para que funcione en cualquier celular, aunque tenga varias cuentas de Google abiertas.
+   El link trae dos datos: r = código del pedido y s = identificador del servidor (implementación de Apps Script).
+   Esta página no guarda nada: solo muestra el pedido y envía la respuesta al servidor del portal. */
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const QS=new URLSearchParams(location.search),RK=(QS.get('r')||'').replace(/[^A-Za-z0-9]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
+const SRV='https://script.google.com/macros/s/'+SID+'/exec';
+async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,...p}),redirect:'follow',credentials:'omit'});
+ const j=await r.json();if(j.err)throw new Error(j.err);return j}
+function rqFit(){try{const sw=Math.min(screen.width||0,screen.height||0)||window.innerWidth,r=window.innerWidth/sw;document.body.style.zoom=(sw<900&&r>1.2)?r.toFixed(3):''}catch(e){}}
+async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!window.__rqfit){window.__rqfit=1;window.addEventListener('resize',rqFit);window.addEventListener('orientationchange',()=>setTimeout(rqFit,300))}
+ let mv=document.querySelector('meta[name=viewport]');if(!mv){mv=document.createElement('meta');mv.name='viewport';document.head.appendChild(mv)}mv.content='width=device-width, initial-scale=1, viewport-fit=cover';
+ rqFit();document.body.innerHTML=`${window.__TEST?'<div id="tstbar">🧪 ENTORNO DE PRUEBA</div>':''}<div class="rqw" id="rqw"><div class="rqtop"><div class="k">TPR · Confirmación de camiones</div><div class="op">Cargando…</div></div></div>`;
+ const W=document.getElementById('rqw'),E=s=>esc(s);let D;
+ try{D=await api('rq.get',{k});if(D.test&&!document.getElementById('tstbar'))document.body.insertAdjacentHTML('afterbegin','<div id="tstbar">🧪 ENTORNO DE PRUEBA</div>')}catch(x){W.innerHTML=`<div class="rqtop"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">${E(x.message==='Failed to fetch'?'No hay conexión. Probá de nuevo.':x.message)}</div>`;return}
+ const NU=s=>String(s||'').trim().replace(/\s+/g,' ').toUpperCase(),DG=s=>String(s||'').replace(/\D/g,''),DL=D.drivers||[];
+ const dniOf=n=>{const z=DL.find(y=>y.n===NU(n));return z?z.dni:''};
+ const drvIn=(id,lab,v)=>`<div class="tt">${lab}</div><div class="rqd"><div><label for="${id}n">Nombre y apellido</label><input list="rqdl" id="${id}n" autocomplete="off" value="${E((v&&v.n)||'')}" placeholder="Elegí o escribí" style="text-transform:uppercase"></div><div><label for="${id}d">DNI</label><input id="${id}d" inputmode="numeric" maxlength="10" value="${E((v&&v.dni)||'')}" placeholder="Sin puntos"></div></div>`;
+ const hm=s=>String(s).slice(-5),dy=s=>String(s).slice(0,9);
+ /* horas totales del pedido (para no tener que hacer la cuenta) y si el cierre es porque ya respondieron */
+ const TH=D.units.length?Math.max(...D.units.map(u=>u.e))-Math.min(...D.units.map(u=>u.s)):0,OKD=!!D.done&&/^Ya respondiste/.test(D.closed||'');
+ W.innerHTML=`<div class="rqtop"><div class="k">TPR · Confirmación de camiones</div><div class="op">${E(D.op)}${D.bq?`<span class="bq">${E(D.bq)}</span>`:''}</div><div class="hr"><span class="l">Desde</span><span><b>${E(D.sD)}</b> · ${E(D.sH)} h</span><span class="l">Hasta</span><span><b>${E(D.eD)}</b> · ${E(D.eH)} h</span></div>${TH?`<div style="margin-top:8px;font-size:18px">⏱ <b>${TH} h</b> en total</div>`:''}<span class="who">${E(D.name)}</span></div>
+  ${D.closed?`<div class="rqok" style="border-color:${OKD?'#22c55e':'#f59e0b'};background:${OKD?'rgba(34,197,94,.14)':'rgba(245,158,11,.14)'}">${OKD?'✔':'🔒'} ${E(D.closed)}</div>`:`<p class="rqhelp">Para cada camión indicá si puede y quién maneja${D.units.some(u=>u.h>D.maxh)?`. Si el turno supera ${D.maxh} h, cargá también quién releva`:''}. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p>`}
+  <datalist id="rqdl">${DL.map(z=>`<option value="${E(z.n)}" label="${z.dni?'DNI '+z.dni:''}">`).join('')}</datalist>
+  ${D.units.map((u,i)=>{const r=u.res||{},yes=r.ok!==false,two=u.h>D.maxh,nm=u.tipo==='Chasis TPR'&&u.sm?u.sm:u.tr,sub=u.tipo==='Chasis TPR'&&u.sm?u.tr:(u.sm||'');
+   return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}"><div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}</div>
+   <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${u.h} h en total${u.tipo!=='Chasis TPR'?' · '+E(u.t):''}</span></div>
+   <div class="rqp">Chofer propuesto: <b>${E(u.tent||'—')}</b></div>
+   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?'✔ Ya respondido: arranca '+E(r.a)+(r.b?' · releva '+E(r.b):''):'✖ Ya respondido: no puede'}</span>`:''}
+   ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
+   <div class="rqf rqy" style="display:${yes?'block':'none'}">${drvIn('a'+i,two?'Arranca (primer turno)':'Chofer',r.a?{n:r.a,dni:dniOf(r.a)}:{n:u.tent,dni:dniOf(u.tent)})}${two?drvIn('b'+i,'Releva (después de '+D.maxh+' h)',r.b?{n:r.b,dni:dniOf(r.b)}:null):''}</div>
+   <div class="rqf rqn" style="display:${yes?'none':'block'}"><label for="w${i}">Motivo</label><select id="w${i}"><option value="chofer" ${r.why==='chofer'?'selected':''}>No tengo chofer</option><option value="unidad" ${r.why==='unidad'?'selected':''}>La unidad no está disponible</option><option value="otro" ${r.why==='otro'?'selected':''}>Otro</option></select><label for="x${i}">Detalle (opcional)</label><input id="x${i}" maxlength="300" value="${E(r.txt||'')}" placeholder="Ej.: el chofer está enfermo"></div>`}</div>`}).join('')}
+  ${D.closed?'':`<div class="rqer" id="rqer"></div>`}
+  <p class="rqfoot">Este link es solo para ${E(D.name)}. No lo reenvíes fuera del grupo.</p>
+  ${D.closed?'':`<div class="rqbar"><button id="rqok">Enviar respuesta</button></div>`}`;
+ if(D.closed)return;
+ W.querySelectorAll('.rqu').forEach(b=>{const i=b.dataset.i;b.querySelectorAll('[name=ok'+i+']').forEach(r=>r.onchange=()=>{const y=b.querySelector('[name=ok'+i+']:checked').value==='1';
+   b.querySelector('.rqy').style.display=y?'block':'none';b.querySelector('.rqn').style.display=y?'none':'block';b.querySelector('label.y').classList.toggle('on',y);b.querySelector('label.n').classList.toggle('on',!y)});
+  ['a','b'].forEach(p=>{const n=document.getElementById(p+i+'n');if(n)n.addEventListener('input',()=>{const d=dniOf(n.value);if(d)document.getElementById(p+i+'d').value=d})})});
+ document.getElementById('rqok').onclick=async()=>{const er=document.getElementById('rqer'),btn=document.getElementById('rqok'),R=[],seen={};er.textContent='';
+  const fail=(t,el)=>{er.textContent='⚠ '+t;try{(el||er).scrollIntoView({behavior:'smooth',block:'center'})}catch(x){}if(el&&el.focus)el.focus()};
+  for(let i=0;i<D.units.length;i++){const u=D.units[i],nm=u.tipo==='Chasis TPR'&&u.sm?u.sm:u.tr,y=document.querySelector('[name=ok'+i+']:checked').value==='1';
+   if(!y){R.push({f:u.f,ok:false,why:document.getElementById('w'+i).value,txt:document.getElementById('x'+i).value.trim()});continue}
+   const g=p=>{const n=document.getElementById(p+i+'n');return n?{n:NU(n.value),dni:DG(document.getElementById(p+i+'d').value)}:null},A=g('a'),B=u.h>D.maxh?g('b'):null;
+   if(A.n.length<3)return fail(nm+': falta el nombre del chofer.',document.getElementById('a'+i+'n'));
+   if(A.dni.length<6||A.dni.length>9)return fail(nm+': falta el DNI del chofer (sin puntos).',document.getElementById('a'+i+'d'));
+   if(B&&B.n.length<3)return fail(nm+': falta quién releva.',document.getElementById('b'+i+'n'));
+   if(B&&(B.dni.length<6||B.dni.length>9))return fail(nm+': falta el DNI de quien releva.',document.getElementById('b'+i+'d'));
+   if(B&&B.dni===A.dni)return fail(nm+': el que arranca y el que releva no pueden ser la misma persona.',document.getElementById('b'+i+'n'));
+   for(const z of [A,B].filter(Boolean)){if(seen[z.dni])return fail(z.n+' está cargado en dos camiones: '+seen[z.dni]+' y '+nm+'.');seen[z.dni]=nm}
+   R.push({f:u.f,ok:true,a:A,b:B})}
+  if(!btn.dataset.ok2){btn.dataset.ok2=1;btn.textContent='Tocá de nuevo para confirmar el envío';btn.style.background='linear-gradient(135deg,#c2620c,#f59e0b)';
+   er.textContent='Revisá los datos: después de enviar no se puede modificar.';setTimeout(()=>{if(btn.dataset.ok2&&!btn.disabled){delete btn.dataset.ok2;btn.textContent='Enviar respuesta';btn.style.background=''}},8000);return}
+  btn.disabled=true;btn.textContent='Enviando…';
+  try{const j=await api('rq.send',{k,r:R});W.insertAdjacentHTML('afterbegin',`<div class="rqok">✔ <b>¡Respuesta enviada!</b><br>${j.n} confirmado${j.n===1?'':'s'}${j.no?' · '+j.no+' no pueden':''}${j.rev?'<br>'+j.rev+' quedan para revisión de Logística (descanso del chofer)':''}. Gracias.</div>`);try{window.scrollTo({top:0,behavior:'smooth'})}catch(x){}setTimeout(()=>rqPage(k),3500)}
+  catch(x){fail(x.message==='Failed to fetch'?'No hay conexión. Probá de nuevo.':x.message);btn.disabled=false;delete btn.dataset.ok2;btn.style.background='';btn.textContent='Enviar respuesta'}}}
+if(!RK||!SID)document.body.innerHTML='<div class="rqw"><div class="rqtop"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El link está incompleto. Pedile uno nuevo a Logística.</div></div>';
+else rqPage(RK);
+</script>
+</body></html>
