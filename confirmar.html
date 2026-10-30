@@ -57,6 +57,7 @@ const QS=new URLSearchParams(location.search),RK=(QS.get('r')||'').replace(/[^A-
 const SRV='https://script.google.com/macros/s/'+SID+'/exec';
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,...p}),redirect:'follow',credentials:'omit'});
  const j=await r.json();if(j.err)throw new Error(j.err);return j}
+const fmtHs=x=>String(Math.round(x*100)/100).replace('.',',');
 function rqFit(){try{const sw=Math.min(screen.width||0,screen.height||0)||window.innerWidth,r=window.innerWidth/sw;document.body.style.zoom=(sw<900&&r>1.2)?r.toFixed(3):''}catch(e){}}
 async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!window.__rqfit){window.__rqfit=1;window.addEventListener('resize',rqFit);window.addEventListener('orientationchange',()=>setTimeout(rqFit,300))}
  let mv=document.querySelector('meta[name=viewport]');if(!mv){mv=document.createElement('meta');mv.name='viewport';document.head.appendChild(mv)}mv.content='width=device-width, initial-scale=1, viewport-fit=cover';
@@ -69,12 +70,12 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const hm=s=>String(s).slice(-5),dy=s=>String(s).slice(0,9);
  /* horas totales del pedido (para no tener que hacer la cuenta) y si el cierre es porque ya respondieron */
  const TH=D.units.length?Math.max(...D.units.map(u=>u.e))-Math.min(...D.units.map(u=>u.s)):0,OKD=!!D.done&&/^Ya respondiste/.test(D.closed||'');
- W.innerHTML=`<div class="rqtop"><div class="k">TPR · Confirmación de camiones</div><div class="op">${E(D.op)}${D.bq?`<span class="bq">${E(D.bq)}</span>`:''}</div><div class="hr"><span class="l">Desde</span><span><b>${E(D.sD)}</b> · ${E(D.sH)} h</span><span class="l">Hasta</span><span><b>${E(D.eD)}</b> · ${E(D.eH)} h</span></div>${TH?`<div style="margin-top:8px;font-size:18px">⏱ <b>${TH} h</b> en total</div>`:''}<span class="who">${E(D.name)}</span></div>
+ W.innerHTML=`<div class="rqtop"><div class="k">TPR · Confirmación de camiones</div><div class="op">${E(D.op)}${D.bq?`<span class="bq">${E(D.bq)}</span>`:''}</div><div class="hr"><span class="l">Desde</span><span><b>${E(D.sD)}</b> · ${E(D.sH)} h</span><span class="l">Hasta</span><span><b>${E(D.eD)}</b> · ${E(D.eH)} h</span></div>${TH?`<div style="margin-top:8px;font-size:18px">⏱ <b>${fmtHs(TH)} h</b> en total</div>`:''}<span class="who">${E(D.name)}</span></div>
   ${D.closed?`<div class="rqok" style="border-color:${OKD?'#22c55e':'#f59e0b'};background:${OKD?'rgba(34,197,94,.14)':'rgba(245,158,11,.14)'}">${OKD?'✔':'🔒'} ${E(D.closed)}</div>`:`<p class="rqhelp">Para cada camión indicá si puede y quién maneja${D.units.some(u=>u.h>D.maxh)?`. Si el turno supera ${D.maxh} h, cargá también quién releva`:''}. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p>`}
   <datalist id="rqdl">${DL.map(z=>`<option value="${E(z.n)}" label="${z.dni?'DNI '+z.dni:''}">`).join('')}</datalist>
   ${D.units.map((u,i)=>{const r=u.res||{},yes=r.ok!==false,two=u.h>D.maxh,nm=u.tipo==='Chasis TPR'&&u.sm?u.sm:u.tr,sub=u.tipo==='Chasis TPR'&&u.sm?u.tr:(u.sm||'');
    return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}"><div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}</div>
-   <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${u.h} h en total${u.tipo!=='Chasis TPR'?' · '+E(u.t):''}</span></div>
+   <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total${u.tipo!=='Chasis TPR'?' · '+E(u.t):''}</span></div>
    <div class="rqp">Chofer propuesto: <b>${E(u.tent||'—')}</b></div>
    ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?'✔ Ya respondido: arranca '+E(r.a)+(r.b?' · releva '+E(r.b):''):'✖ Ya respondido: no puede'}</span>`:''}
    ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
