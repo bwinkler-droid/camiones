@@ -85,7 +85,7 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const NU=s=>String(s||'').trim().replace(/\s+/g,' ').toUpperCase(),DG=s=>String(s||'').replace(/\D/g,''),PN=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
  const DL=[];OKS.forEach(d=>(d.drivers||[]).forEach(z=>{if(!DL.some(y=>y.n===z.n))DL.push(z)}));
  const dniOf=n=>{const z=DL.find(y=>y.n===NU(n));return z?z.dni:''},MAXH=OKS[0].maxh;
- const drvIn=(id,lab,v)=>`<div class="tt">${lab}</div><div class="rqd"><div><label for="${id}n">Nombre y apellido</label><input list="rqdl" id="${id}n" autocomplete="off" value="${E((v&&v.n)||'')}" placeholder="Elegí o escribí" style="text-transform:uppercase"></div><div><label for="${id}d">DNI</label><input id="${id}d" inputmode="numeric" maxlength="10" value="${E((v&&v.dni)||'')}" placeholder="Sin puntos"></div></div>`;
+ const drvIn=(id,lab,v)=>`<div class="tt">${lab}</div><div class="rqd"><div><label for="${id}n">Nombre y apellido</label><input list="rqdl" id="${id}n" autocomplete="off" value="${E((v&&v.n)||'')}" placeholder="Elegí de la lista" style="text-transform:uppercase"></div><div><label for="${id}d">DNI</label><input id="${id}d" inputmode="numeric" maxlength="10" value="${E((v&&v.dni)||'')}" placeholder="Sin puntos"></div></div>`;
  const TH=D=>D.units.length?Math.max(...D.units.map(u=>u.e))-Math.min(...D.units.map(u=>u.s)):0,isDone=D=>!!D.done&&/^Ya respondiste/.test(D.closed||'');
  const multi=OKS.length>1,open=OKS.filter(D=>!D.closed),U=[];   /* U: todas las unidades de la página, en orden */
  /* hora local (el servidor manda horas "locales como UTC"), mismo formato que el servidor: "mar 03/11 10:00" */
@@ -111,7 +111,7 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const nU=OKS.reduce((s,D)=>s+D.units.length,0);
  W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div>${multi?`<div class="sub">${OKS.length} pedidos · ${nU} camion${nU===1?'':'es'}, uno debajo del otro.</div>`:''}</div>
   ${DS.filter(d=>d.err).map(d=>`<div class="rqer">Uno de los pedidos no se pudo abrir: ${E(d.err)}</div>`).join('')}
-  ${open.length?`<p class="rqhelp">Para cada camión indicá si puede y quién maneja${OKS.some(D=>D.units.some(u=>u.h>MAXH))?`. <b>Si el turno supera ${MAXH} h, cargá también quién releva</b>`:''}. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p>`:''}
+  ${open.length?`<p class="rqhelp">Para cada camión indicá si puede y quién maneja${OKS.some(D=>D.units.some(u=>u.h>MAXH))?`. <b>Si el turno supera ${MAXH} h, cargá también quién releva</b>`:''}. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p><p class="rqhelp">👤 Solo se aceptan <b>choferes dados de alta en TPR</b> (por DNI). Si el chofer que va no aparece en la lista, pedile a Logística que lo dé de alta antes de responder.</p>`:''}
   <datalist id="rqdl">${DL.map(z=>`<option value="${E(z.n)}" label="${z.dni?'DNI '+z.dni:''}">`).join('')}</datalist>
   ${OKS.map(secHtml).join('')}
   ${open.length?`<div class="rqer" id="rqer"></div>`:''}
