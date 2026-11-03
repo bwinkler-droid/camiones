@@ -48,6 +48,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .rqtop.rqsm{padding:12px 14px;margin:6px 0 8px;background:linear-gradient(135deg,#334155,#475569);box-shadow:none}.rqtop.rqsm .op{font-size:21px}
 .rqpl{margin-top:12px;border:1px dashed var(--line);border-radius:12px;padding:8px 12px}.rqpl summary{font-size:16px;font-weight:700;color:#3b82f6;cursor:pointer;padding:4px 0}
 .rqf input:disabled{opacity:.55}
+.rqhd{margin:6px 2px 10px}.rqhd .k{font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut)}.rqhd .sub{font-size:16px;color:var(--mut);margin-top:2px}
+.rqop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#3b82f6;margin-bottom:4px}
+.rqop .bq{background:rgba(31,111,235,.14);border-radius:8px;padding:1px 8px;letter-spacing:0;text-transform:none}
+.rqt .tn{display:inline-block;font-size:15px;font-weight:800;letter-spacing:0;background:rgba(127,127,127,.16);color:var(--fg);border-radius:20px;padding:2px 10px;margin-left:6px;vertical-align:middle}
+.rqrl{margin:12px 0 4px;border:2px solid #f59e0b;background:rgba(245,158,11,.16);border-radius:12px;padding:10px 12px;font-size:17px;line-height:1.4}
+.rqrl .t{font-size:19px;font-weight:800;color:#c2620c;display:block;margin-bottom:2px}.rqrl ul{margin:6px 0 0;padding-left:20px;font-size:16px}
+.rqrb{border:2px solid #f59e0b;border-radius:12px;padding:2px 10px 10px;margin-top:12px;background:rgba(245,158,11,.08)}.rqrb .tt{color:#c2620c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rqrl .t,:root:not([data-theme="light"]) .rqrb .tt{color:#fbbf24}}
+:root[data-theme="dark"] .rqrl .t,:root[data-theme="dark"] .rqrb .tt{color:#fbbf24}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip2.ye{color:#f0c94a}}
 </style></head>
 <body>
@@ -65,13 +74,13 @@ const fmtHs=x=>String(Math.round(x*100)/100).replace('.',',');
 function rqFit(){try{const sw=Math.min(screen.width||0,screen.height||0)||window.innerWidth,r=window.innerWidth/sw;document.body.style.zoom=(sw<900&&r>1.2)?r.toFixed(3):''}catch(e){}}
 async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!window.__rqfit){window.__rqfit=1;window.addEventListener('resize',rqFit);window.addEventListener('orientationchange',()=>setTimeout(rqFit,300))}
  let mv=document.querySelector('meta[name=viewport]');if(!mv){mv=document.createElement('meta');mv.name='viewport';document.head.appendChild(mv)}mv.content='width=device-width, initial-scale=1, viewport-fit=cover';
- rqFit();document.body.innerHTML=`${window.__TEST?'<div id="tstbar">🧪 ENTORNO DE PRUEBA</div>':''}<div class="rqw" id="rqw"><div class="rqtop"><div class="k">TPR · Confirmación de camiones</div><div class="op">Cargando…</div></div></div>`;
+ rqFit();document.body.innerHTML=`${window.__TEST?'<div id="tstbar">🧪 ENTORNO DE PRUEBA</div>':''}<div class="rqw" id="rqw"><div class="rqhd"><div class="k">TPR · Confirmación de camiones</div><div class="sub">Cargando…</div></div></div>`;
  const W=document.getElementById('rqw'),E=s=>esc(s),errTxt=x=>x.message==='Failed to fetch'?'No hay conexión. Probá de nuevo.':x.message;
  /* un link puede traer varios pedidos del mismo transporte (códigos separados por punto): se muestran todos juntos */
  const KS=String(k).split('.').filter(x=>x.length>=20).slice(0,10);let DS;
  try{DS=await Promise.all(KS.map(c=>api('rq.get',{k:c}).then(d=>Object.assign(d,{k:c})).catch(x=>({k:c,err:errTxt(x)}))))}catch(x){DS=[{err:errTxt(x)}]}
  const OKS=DS.filter(d=>!d.err);
- if(!OKS.length){W.innerHTML=`<div class="rqtop"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">${E((DS[0]||{}).err||'El link no es válido.')}</div>`;return}
+ if(!OKS.length){W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">${E((DS[0]||{}).err||'El link no es válido.')}</div>`;return}
  if(OKS.some(d=>d.test)&&!document.getElementById('tstbar'))document.body.insertAdjacentHTML('afterbegin','<div id="tstbar">🧪 ENTORNO DE PRUEBA</div>');
  const NU=s=>String(s||'').trim().replace(/\s+/g,' ').toUpperCase(),DG=s=>String(s||'').replace(/\D/g,''),PN=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
  const DL=[];OKS.forEach(d=>(d.drivers||[]).forEach(z=>{if(!DL.some(y=>y.n===z.n))DL.push(z)}));
@@ -79,25 +88,30 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const drvIn=(id,lab,v)=>`<div class="tt">${lab}</div><div class="rqd"><div><label for="${id}n">Nombre y apellido</label><input list="rqdl" id="${id}n" autocomplete="off" value="${E((v&&v.n)||'')}" placeholder="Elegí o escribí" style="text-transform:uppercase"></div><div><label for="${id}d">DNI</label><input id="${id}d" inputmode="numeric" maxlength="10" value="${E((v&&v.dni)||'')}" placeholder="Sin puntos"></div></div>`;
  const TH=D=>D.units.length?Math.max(...D.units.map(u=>u.e))-Math.min(...D.units.map(u=>u.s)):0,isDone=D=>!!D.done&&/^Ya respondiste/.test(D.closed||'');
  const multi=OKS.length>1,open=OKS.filter(D=>!D.closed),U=[];   /* U: todas las unidades de la página, en orden */
- const head=D=>`<div class="op">${E(D.op)}${D.bq?`<span class="bq">${E(D.bq)}</span>`:''}</div><div class="hr"><span class="l">Desde</span><span><b>${E(D.sD)}</b> · ${E(D.sH)} h</span><span class="l">Hasta</span><span><b>${E(D.eD)}</b> · ${E(D.eH)} h</span></div>${TH(D)?`<div style="margin-top:8px;font-size:18px">⏱ <b>${fmtHs(TH(D))} h</b> en total</div>`:''}`;
+ /* hora local (el servidor manda horas "locales como UTC"), mismo formato que el servidor: "mar 03/11 10:00" */
+ const fL=h=>{const d=new Date(Math.round(h*60)*6e4),p=n=>String(n).padStart(2,'0');return ['dom','lun','mar','mié','jue','vie','sáb'][d.getUTCDay()]+' '+p(d.getUTCDate())+'/'+p(d.getUTCMonth()+1)+' · '+p(d.getUTCHours())+':'+p(d.getUTCMinutes())};
+ const opLine=D=>`<div class="rqop">${E(D.op)}${D.bq?`<span class="bq">🚢 ${E(D.bq)}</span>`:''}</div>`;
+ /* aviso de relevo: el tramo de la unidad supera MAXH h → los choferes se alternan cada MAXH h */
+ const relHtml=u=>{if(!(u.h>MAXH))return '';const ch=[];for(let t=u.s+MAXH,n=1;t<u.e-1e-9&&ch.length<8;t+=MAXH,n++)ch.push({t,who:n%2?'entra el que releva':'vuelve el que arrancó'});
+   return `<div class="rqrl"><span class="t">⚠ Turno de ${fmtHs(u.h)} h: necesita relevo</span>Un chofer no puede manejar más de ${MAXH} h seguidas. El que arranca trabaja hasta el <b>${E(fL(ch[0].t))}</b> y ahí lo reemplaza el que releva.${ch.length>1?`<ul>${ch.map(c=>`<li><b>${E(fL(c.t))}</b>: ${c.who}</li>`).join('')}</ul>`:''}</div>`};
  const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',nm=tpr&&u.sm?u.sm:u.tr,sub=tpr&&u.sm?u.tr:(u.sm||'');
-   return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}"><div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}</div>
-   <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total${!tpr?' · '+E(u.t):''}</span></div>
+   return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>
+   <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total</span></div>${relHtml(u)}
    <div class="rqp">Chofer propuesto: <b>${E(u.tent||'—')}</b></div>
    ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?(r.late?'⏰ Respondido tarde: arranca ':'✔ Ya respondido: arranca ')+E(r.a)+(r.b?' · releva '+E(r.b):''):'✖ Ya respondido: no puede'}</span>`:''}
    ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
-   <div class="rqf rqy" style="display:${yes?'block':'none'}">${drvIn('a'+i,two?'Arranca (primer turno)':'Chofer',r.a?{n:r.a,dni:dniOf(r.a)}:{n:u.tent,dni:dniOf(u.tent)})}${two?drvIn('b'+i,'Releva (después de '+MAXH+' h)',r.b?{n:r.b,dni:dniOf(r.b)}:null):''}
+   <div class="rqf rqy" style="display:${yes?'block':'none'}">${drvIn('a'+i,two?'Arranca (primer turno)':'Chofer',r.a?{n:r.a,dni:dniOf(r.a)}:{n:u.tent,dni:dniOf(u.tent)})}${two?`<div class="rqrb">${drvIn('b'+i,'⚠ Releva (desde el '+fL(u.s+MAXH)+')',r.b?{n:r.b,dni:dniOf(r.b)}:null)}</div>`:''}
     <details class="rqpl"><summary>✏️ ¿Va con otra patente? Corregila acá</summary><div class="rqd"><div><label for="t${i}">Tractor</label><input id="t${i}" value="${E(u.tr)}" maxlength="12" style="text-transform:uppercase"></div><div><label for="s${i}">Semi</label><input id="s${i}" value="${E(u.sm)}" maxlength="12" style="text-transform:uppercase" ${tpr?'disabled title="El chasis TPR no se cambia"':''}></div></div><div class="rqhelp" style="margin-top:6px">Si la cambiás, se actualiza en el sistema de Logística.</div></details></div>
    <div class="rqf rqn" style="display:${yes?'none':'block'}"><label for="w${i}">Motivo</label><select id="w${i}"><option value="chofer" ${r.why==='chofer'?'selected':''}>No tengo chofer</option><option value="unidad" ${r.why==='unidad'?'selected':''}>La unidad no está disponible</option><option value="otro" ${r.why==='otro'?'selected':''}>Otro</option></select><label for="x${i}">Detalle (opcional)</label><input id="x${i}" maxlength="300" value="${E(r.txt||'')}" placeholder="Ej.: el chofer está enfermo"></div>`}</div>`};
  const secHtml=D=>{const ok=isDone(D);
-   return `${multi?`<div class="rqsec"><div class="rqtop rqsm">${head(D)}</div>`:''}
-   ${D.closed?`<div class="rqok" style="border-color:${ok?'#22c55e':'#f59e0b'};background:${ok?'rgba(34,197,94,.14)':'rgba(245,158,11,.14)'}">${ok?'✔':'🔒'} ${E(D.closed)}</div>`:''}
-   ${!D.closed&&(D.gone||[]).length?`<div class="rqok" style="border-color:#ef4444;background:rgba(239,68,68,.10)">🚫 Logística ya no necesita ${D.gone.length===1?'la unidad':'las unidades'} <b>${E(D.gone.join(', '))}</b>. No ${D.gone.length===1?'la':'las'} mandes.</div>`:''}
+   return `${multi?`<div class="rqsec">`:''}
+   ${D.closed?`<div class="rqok" style="border-color:${ok?'#22c55e':'#f59e0b'};background:${ok?'rgba(34,197,94,.14)':'rgba(245,158,11,.14)'}">${ok?'✔':'🔒'} ${multi?`<b>${E(D.op)}${D.bq?' '+E(D.bq):''}:</b> `:''}${E(D.closed)}</div>`:''}
+   ${!D.closed&&(D.gone||[]).length?`<div class="rqok" style="border-color:#ef4444;background:rgba(239,68,68,.10)">🚫 ${multi?`<b>${E(D.op)}${D.bq?' '+E(D.bq):''}:</b> `:''}Logística ya no necesita ${D.gone.length===1?'la unidad':'las unidades'} <b>${E(D.gone.join(', '))}</b>. No ${D.gone.length===1?'la':'las'} mandes.</div>`:''}
    ${D.units.map(u=>unitHtml(D,u)).join('')}${multi?'</div>':''}`};
  const nU=OKS.reduce((s,D)=>s+D.units.length,0);
- W.innerHTML=`<div class="rqtop"><div class="k">TPR · Confirmación de camiones</div>${multi?`<div class="op">${OKS.length} pedidos · ${nU} camion${nU===1?'':'es'}</div><div style="font-size:16px;margin-top:4px">Están todos en esta página, uno debajo del otro.</div>`:head(OKS[0])}<span class="who">${E(OKS[0].name)}</span></div>
+ W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div>${multi?`<div class="sub">${OKS.length} pedidos · ${nU} camion${nU===1?'':'es'}, uno debajo del otro.</div>`:''}</div>
   ${DS.filter(d=>d.err).map(d=>`<div class="rqer">Uno de los pedidos no se pudo abrir: ${E(d.err)}</div>`).join('')}
-  ${open.length?`<p class="rqhelp">Para cada camión indicá si puede y quién maneja${OKS.some(D=>D.units.some(u=>u.h>MAXH))?`. Si el turno supera ${MAXH} h, cargá también quién releva`:''}. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p>`:''}
+  ${open.length?`<p class="rqhelp">Para cada camión indicá si puede y quién maneja${OKS.some(D=>D.units.some(u=>u.h>MAXH))?`. <b>Si el turno supera ${MAXH} h, cargá también quién releva</b>`:''}. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p>`:''}
   <datalist id="rqdl">${DL.map(z=>`<option value="${E(z.n)}" label="${z.dni?'DNI '+z.dni:''}">`).join('')}</datalist>
   ${OKS.map(secHtml).join('')}
   ${open.length?`<div class="rqer" id="rqer"></div>`:''}
@@ -135,7 +149,7 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
    W.insertAdjacentHTML('afterbegin',`<div class="rqok">✔ <b>¡Respuesta enviada!</b><br>${j.n} confirmado${j.n===1?'':'s'}${j.no?' · '+j.no+' no pueden':''}${j.rev?'<br>'+j.rev+' quedan para revisión de Logística (descanso del chofer)':''}. Gracias.${(j.late||[]).length?`<br>⏰ <b>${E(j.late.join(', '))}</b>: la demanda ya se había cubierto. Quedó registrada tu respuesta; <b>no la mandes hasta que Logística te confirme</b>.`:''}${(j.gone||[]).length?`<br>🚫 <b>${E(j.gone.join(', '))}</b>: ${j.gone.length===1?'esa unidad ya no está pedida':'esas unidades ya no están pedidas'}, comunicate con Logística.`:''}</div>`);
    try{window.scrollTo({top:0,behavior:'smooth'})}catch(x){}setTimeout(()=>rqPage(k),(j.late||[]).length||(j.gone||[]).length?12000:3500)}
   catch(x){fail(errTxt(x));btn.disabled=false;delete btn.dataset.ok2;btn.style.background='';btn.textContent='Enviar respuesta'}}}
-if(!RK||!SID)document.body.innerHTML='<div class="rqw"><div class="rqtop"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El link está incompleto. Pedile uno nuevo a Logística.</div></div>';
+if(!RK||!SID)document.body.innerHTML='<div class="rqw"><div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El link está incompleto. Pedile uno nuevo a Logística.</div></div>';
 else rqPage(RK);
 </script>
 </body></html>
