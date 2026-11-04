@@ -73,6 +73,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .rqtot{font-size:16px;margin-top:14px;line-height:1.7}
 .rqprev{margin-top:8px;font-size:16px;color:var(--mut);background:rgba(127,127,127,.10);border-radius:10px;padding:8px 10px}.rqprev b{color:var(--fg)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rqtol{color:#fbbf24}}:root[data-theme="dark"] .rqtol{color:#fbbf24}
+.rqres{margin-top:8px;border-radius:12px;background:rgba(34,197,94,.10);padding:8px 12px}.rqres>div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;padding:6px 0;border-bottom:1px solid rgba(34,197,94,.25);font-size:16px}.rqres>div:last-of-type{border-bottom:0}.rqres span{color:var(--mut)}
+.rqcp{margin-top:8px;width:100%;min-height:48px;font-size:17px;font-weight:700;border-radius:12px;border:2px solid #22c55e;background:transparent;color:#16a34a;cursor:pointer}
 </style></head>
 <body>
 <script>
@@ -109,12 +111,16 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  /* aviso de relevo: el tramo de la unidad supera MAXH h → los choferes se alternan cada MAXH h */
  const relHtml=u=>{if(!(u.h>MAXH))return '';const ch=[];for(let t=u.s+MAXH,n=1;t<u.e-1e-9&&ch.length<8;t+=MAXH,n++)ch.push({t,who:n%2?'entra el que releva':'vuelve el que arrancó'});
    return `<div class="rqrl"><span class="t">⚠ Turno de ${fmtHs(u.h)} h: necesita relevo</span>Un chofer no puede manejar más de ${MAXH} h seguidas. El que arranca trabaja hasta el <b>${E(fL(ch[0].t))}</b> y ahí lo reemplaza el que releva.${ch.length>1?`<ul>${ch.map(c=>`<li><b>${E(fL(c.t))}</b>: ${c.who}</li>`).join('')}</ul>`:''}</div>`};
+ /* respuesta ya enviada: un renglón por tramo con día y hora, y un botón para copiarla (por ejemplo, para mandársela a los choferes) */
+ const tmTxt=z=>{const a=fL(z.s),b=fL(z.e);return a+' a '+(a.slice(0,9)===b.slice(0,9)?b.slice(-5):b)};
+ const resTxt=(D,u,r)=>[D.op+(D.bq?' '+D.bq:'')+' · '+(u.tipo==='Chasis TPR'&&u.sm?u.sm+' / '+u.tr:u.tr+(u.sm?' / '+u.sm:''))].concat(r.tr.map(z=>'• '+z.n+': '+tmTxt(z).replace(/ · /g,' '))).join('\n');
+ const resList=(D,u,r)=>`<div class="rqres">${r.tr.map(z=>`<div><b>${E(z.n)}</b><span>${E(tmTxt(z))}</span></div>`).join('')}<button type="button" class="rqcp" data-cp="${E(resTxt(D,u,r))}">📋 Copiar para mandar a los choferes</button></div>`;
  const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',nm=tpr&&u.sm?u.sm:u.tr,sub=tpr&&u.sm?u.tr:(u.sm||'');
    return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>
    <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total</span></div>
    <div class="rqp">Chofer propuesto: <b>${u.tent?E(u.tent):'a definir por el transporte'}</b></div>
    ${u.prev&&!u.res?`<div class="rqprev">🕘 Esta unidad viene trabajando con <b>${E(u.prev.n)}</b> desde el ${E(fL(u.prev.js))}${u.prev.pe<u.s-1e-6?' (terminó el '+E(fL(u.prev.pe))+')':''}. Si sigue él, se cuenta la jornada que ya trae.</div>`:''}
-   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?(r.late?'⏰ Respondido tarde: ':'✔ Ya respondido: ')+(r.tr&&r.tr.length?r.tr.map(z=>E(z.n)+' '+E(fL(z.s).slice(-5))+'–'+E(fL(z.e).slice(-5))).join(' · '):'arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>`:''}
+   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?(r.late?'⏰ Respondido tarde':'✔ Ya respondido')+(r.tr&&r.tr.length?'':': arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>${r.ok&&r.tr&&r.tr.length?resList(D,u,r):''}`:''}
    ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
    <div class="rqf rqy" style="display:${yes?'block':'none'}"><div class="rqtl" id="tl${i}"></div><div class="rqtlx"><span>${E(fL(u.s))}</span><span>${E(fL(u.e))}</span></div><div id="tms${i}" data-u="${i}"></div><div class="rqtot" id="tot${i}"></div>
     <details class="rqpl"><summary>✏️ ¿Va con otra patente? Corregila acá</summary><div class="rqd"><div><label for="t${i}">Tractor</label><input id="t${i}" value="${E(u.tr)}" maxlength="12" style="text-transform:uppercase"></div><div><label for="s${i}">Semi</label><input id="s${i}" value="${E(u.sm)}" maxlength="12" style="text-transform:uppercase" ${tpr?'disabled title="El chasis TPR no se cambia"':''}></div></div><div class="rqhelp" style="margin-top:6px">Si la cambiás, se actualiza en el sistema de Logística.</div></details></div>
@@ -228,6 +234,9 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
    W.insertAdjacentHTML('afterbegin',`<div class="rqok">✔ <b>¡Respuesta enviada!</b><br>${j.n} confirmado${j.n===1?'':'s'}${j.no?' · '+j.no+' no pueden':''}${j.rev?'<br>'+j.rev+' tramo'+(j.rev>1?'s quedan':' queda')+' para revisión de Logística (descanso o tolerancia)':''}. Gracias.${(j.late||[]).length?`<br>⏰ <b>${E(j.late.join(', '))}</b>: la demanda ya se había cubierto. Quedó registrada tu respuesta; <b>no la mandes hasta que Logística te confirme</b>.`:''}${(j.gone||[]).length?`<br>🚫 <b>${E(j.gone.join(', '))}</b>: ${j.gone.length===1?'esa unidad ya no está pedida':'esas unidades ya no están pedidas'}, comunicate con Logística.`:''}</div>`);
    try{window.scrollTo({top:0,behavior:'smooth'})}catch(x){}setTimeout(()=>rqPage(k),(j.late||[]).length||(j.gone||[]).length?12000:3500)}
   catch(x){fail(errTxt(x));btn.disabled=false;delete btn.dataset.ok2;btn.style.background='';btn.textContent='Enviar respuesta'}}}
+document.addEventListener('click',async ev=>{const b=ev.target.closest('.rqcp');if(!b)return;const t=b.dataset.cp;let ok=false;
+ try{await navigator.clipboard.writeText(t);ok=true}catch(e){try{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();ok=document.execCommand('copy');x.remove()}catch(e2){}}
+ const o=b.textContent;b.textContent=ok?'✔ Copiado: pegalo en WhatsApp':'No se pudo copiar';setTimeout(()=>b.textContent=o,2500)});
 if(!RK||!SID)document.body.innerHTML='<div class="rqw"><div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El link está incompleto. Pedile uno nuevo a Logística.</div></div>';
 else rqPage(RK);
 </script>
