@@ -58,6 +58,21 @@ button:disabled{opacity:.45;cursor:not-allowed}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rqrl .t,:root:not([data-theme="light"]) .rqrb .tt{color:#fbbf24}}
 :root[data-theme="dark"] .rqrl .t,:root[data-theme="dark"] .rqrb .tt{color:#fbbf24}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip2.ye{color:#f0c94a}}
+
+/* Tramos de choferes: barra con un color por chofer y un bloque por tramo (quién maneja y hasta qué hora) */
+.rqtl{display:flex;height:64px;border-radius:12px;overflow:hidden;margin-top:14px;border:1px solid var(--line)}
+.rqtl>div{display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;border-right:2px solid var(--card);line-height:1.25;min-width:0}
+.rqtl>div:last-child{border-right:0}.rqtl b{font-size:15px;font-weight:800}.rqtl span{font-size:13px;font-weight:600}
+.rqtlx{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-top:4px}
+.rqtm{border:2px solid var(--line);border-radius:12px;padding:4px 12px 12px;margin-top:12px}
+.rqtm .tt{margin:10px 0 2px}
+.rqro{display:flex;align-items:center;width:100%;font-size:20px;padding:14px;min-height:56px;border-radius:12px;border:1px solid var(--line);background:rgba(127,127,127,.12);color:var(--mut)}
+.rqdot{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:8px;vertical-align:-1px;background:var(--line)}
+.rqtol{margin-top:10px;border:2px dashed #f59e0b;background:rgba(245,158,11,.12);border-radius:10px;padding:8px 10px;font-size:16px;color:#c2620c;font-weight:600}
+.rqte{color:#dc2626;font-weight:700;font-size:16px;margin-top:8px}.rqte:empty{display:none}
+.rqtot{font-size:16px;margin-top:14px;line-height:1.7}
+.rqprev{margin-top:8px;font-size:16px;color:var(--mut);background:rgba(127,127,127,.10);border-radius:10px;padding:8px 10px}.rqprev b{color:var(--fg)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rqtol{color:#fbbf24}}:root[data-theme="dark"] .rqtol{color:#fbbf24}
 </style></head>
 <body>
 <script>
@@ -96,11 +111,12 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
    return `<div class="rqrl"><span class="t">⚠ Turno de ${fmtHs(u.h)} h: necesita relevo</span>Un chofer no puede manejar más de ${MAXH} h seguidas. El que arranca trabaja hasta el <b>${E(fL(ch[0].t))}</b> y ahí lo reemplaza el que releva.${ch.length>1?`<ul>${ch.map(c=>`<li><b>${E(fL(c.t))}</b>: ${c.who}</li>`).join('')}</ul>`:''}</div>`};
  const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',nm=tpr&&u.sm?u.sm:u.tr,sub=tpr&&u.sm?u.tr:(u.sm||'');
    return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>
-   <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total</span></div>${relHtml(u)}
-   <div class="rqp">Chofer propuesto: <b>${E(u.tent||'—')}</b></div>
-   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?(r.late?'⏰ Respondido tarde: arranca ':'✔ Ya respondido: arranca ')+E(r.a)+(r.b?' · releva '+E(r.b):''):'✖ Ya respondido: no puede'}</span>`:''}
+   <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total</span></div>
+   <div class="rqp">Chofer propuesto: <b>${u.tent?E(u.tent):'a definir por el transporte'}</b></div>
+   ${u.prev&&!u.res?`<div class="rqprev">🕘 Esta unidad viene trabajando con <b>${E(u.prev.n)}</b> desde el ${E(fL(u.prev.js))}${u.prev.pe<u.s-1e-6?' (terminó el '+E(fL(u.prev.pe))+')':''}. Si sigue él, se cuenta la jornada que ya trae.</div>`:''}
+   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?(r.late?'⏰ Respondido tarde: ':'✔ Ya respondido: ')+(r.tr&&r.tr.length?r.tr.map(z=>E(z.n)+' '+E(fL(z.s).slice(-5))+'–'+E(fL(z.e).slice(-5))).join(' · '):'arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>`:''}
    ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
-   <div class="rqf rqy" style="display:${yes?'block':'none'}">${drvIn('a'+i,two?'Arranca (primer turno)':'Chofer',r.a?{n:r.a,dni:dniOf(r.a)}:{n:u.tent,dni:dniOf(u.tent)})}${two?`<div class="rqrb">${drvIn('b'+i,'⚠ Releva (desde el '+fL(u.s+MAXH)+')',r.b?{n:r.b,dni:dniOf(r.b)}:null)}</div>`:''}
+   <div class="rqf rqy" style="display:${yes?'block':'none'}"><div class="rqtl" id="tl${i}"></div><div class="rqtlx"><span>${E(fL(u.s))}</span><span>${E(fL(u.e))}</span></div><div id="tms${i}" data-u="${i}"></div><div class="rqtot" id="tot${i}"></div>
     <details class="rqpl"><summary>✏️ ¿Va con otra patente? Corregila acá</summary><div class="rqd"><div><label for="t${i}">Tractor</label><input id="t${i}" value="${E(u.tr)}" maxlength="12" style="text-transform:uppercase"></div><div><label for="s${i}">Semi</label><input id="s${i}" value="${E(u.sm)}" maxlength="12" style="text-transform:uppercase" ${tpr?'disabled title="El chasis TPR no se cambia"':''}></div></div><div class="rqhelp" style="margin-top:6px">Si la cambiás, se actualiza en el sistema de Logística.</div></details></div>
    <div class="rqf rqn" style="display:${yes?'none':'block'}"><label for="w${i}">Motivo</label><select id="w${i}"><option value="chofer" ${r.why==='chofer'?'selected':''}>No tengo chofer</option><option value="unidad" ${r.why==='unidad'?'selected':''}>La unidad no está disponible</option><option value="otro" ${r.why==='otro'?'selected':''}>Otro</option></select><label for="x${i}">Detalle (opcional)</label><input id="x${i}" maxlength="300" value="${E(r.txt||'')}" placeholder="Ej.: el chofer está enfermo"></div>`}</div>`};
  const secHtml=D=>{const ok=isDone(D);
@@ -111,12 +127,54 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const nU=OKS.reduce((s,D)=>s+D.units.length,0);
  W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div>${multi?`<div class="sub">${OKS.length} pedidos · ${nU} camion${nU===1?'':'es'}, uno debajo del otro.</div>`:''}</div>
   ${DS.filter(d=>d.err).map(d=>`<div class="rqer">Uno de los pedidos no se pudo abrir: ${E(d.err)}</div>`).join('')}
-  ${open.length?`<p class="rqhelp">Para cada camión indicá si puede y quién maneja${OKS.some(D=>D.units.some(u=>u.h>MAXH))?`. <b>Si el turno supera ${MAXH} h, cargá también quién releva</b>`:''}. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p><p class="rqhelp">👤 Solo se aceptan <b>choferes dados de alta en TPR</b> (por DNI). Si el chofer que va no aparece en la lista, pedile a Logística que lo dé de alta antes de responder.</p>`:''}
+  ${open.length?`<p class="rqhelp">Para cada camión indicá si puede y quién maneja en cada tramo. Revisá bien antes de enviar: <b>se puede responder una sola vez</b>.</p><p class="rqhelp">👤 Solo se aceptan <b>choferes dados de alta en TPR</b> (por DNI). Si el chofer que va no aparece en la lista, pedile a Logística que lo dé de alta antes de responder.</p>`:''}
   <datalist id="rqdl">${DL.map(z=>`<option value="${E(z.n)}" label="${z.dni?'DNI '+z.dni:''}">`).join('')}</datalist>
   ${OKS.map(secHtml).join('')}
   ${open.length?`<div class="rqer" id="rqer"></div>`:''}
   <p class="rqfoot">Este link es solo para ${E(OKS[0].name)}. No lo reenvíes fuera del grupo.</p>
   ${open.length?`<div class="rqbar"><button id="rqok">Enviar respuesta</button></div>`:''}`;
+
+ /* ---------- Tramos de choferes por camión ----------
+    Cada tramo: quién maneja y hasta qué hora (cada 1 h desde el inicio del tramo). El siguiente empieza donde termina el anterior.
+    Máximo MAXH h de jornada por tramo (contando lo que ya trae el chofer si sigue de una asignación anterior de la unidad).
+    Solo el último tramo (el que llega al fin) puede llegar a MAXH + TOLH h: queda para que Logística lo apruebe.
+    El chofer que vuelve tiene que haber descansado lo mismo que trabajó (máximo MAXH h). */
+ const TOLH=OKS[0].tolh||0,PAL=[['#85B7EB','#042C53'],['#EF9F27','#412402'],['#AFA9EC','#26215C'],['#97C459','#173404'],['#ED93B1','#4B1528']];
+ const nmOf=dni=>{const z=DL.find(y=>y.dni===dni);return z?z.n:''},apel=n=>{const w=String(n||'').split(' ')[0]||'';return w?w[0]+w.slice(1).toLowerCase():'A definir'};
+ const hsT=v=>fmtHs(Math.round(v*100)/100),TM={};
+ const jsOf=(u,i,t,dni)=>!i&&u.prev&&u.prev.dni&&u.prev.dni===dni&&u.prev.pe>=t-MAXH?u.prev.js:t;
+ function tmOpts(u,i,t,dni){const js=jsOf(u,i,t,dni),lim=Math.min(js+MAXH,u.e),O=[];
+  for(let k=1;t+k<lim-1e-6;k++)O.push({v:t+k,l:fL(t+k)});
+  if(lim>t+1e-6)O.push({v:lim,l:fL(lim)+(Math.abs(lim-u.e)<1e-6?' (fin)':' (máx. '+MAXH+' h)')});
+  if(TOLH&&u.e>lim+1e-6&&u.e-js<=MAXH+TOLH+1e-6)O.push({v:u.e,l:fL(u.e)+' (fin · tolerancia)',tol:u.e-js});
+  return O}
+ function tmNorm(i){const {u}=U[i],st=TM[i],o=[];let t=u.s;
+  for(let n=0;t<u.e-1e-6&&n<40;n++){let r=st.rows[n];if(!r){const q=o[o.length-2];r={dni:q?q.dni:'',e:null}}
+   const O=tmOpts(u,n,t,r.dni);let e=r.e;if(!O.some(z=>Math.abs(z.v-e)<1e-6))e=O.length?(O.find(z=>z.tol)||O[O.length-1]).v:u.e;
+   o.push({dni:r.dni,s:t,e,O});t=e}st.rows=o}
+ function tmErrs(i){const {u}=U[i],R=TM[i].rows;return R.map((r,n)=>{if(!r.dni)return 'Elegí el chofer de este tramo.';if(!r.O.length)return apel(nmOf(r.dni))+' ya cumplió '+MAXH+' h de jornada: elegí otro chofer para este tramo.';
+  if(n&&R[n-1].dni===r.dni)return 'Es el mismo chofer del tramo anterior: elegí otro.';
+  let q=null;for(let j=n-1;j>=0;j--)if(R[j].dni===r.dni){q={js:jsOf(u,j,R[j].s,R[j].dni),e:R[j].e};break}
+  if(!q&&u.prev&&u.prev.dni===r.dni&&n>0)q={js:u.prev.js,e:u.prev.pe};
+  if(q){const need=Math.min(MAXH,q.e-q.js);if(r.s-q.e<need-1e-6)return apel(nmOf(r.dni))+' terminó el '+fL(q.e)+' y necesita '+hsT(need)+' h de descanso: está disponible desde el '+fL(q.e+need)+'.'}
+  return ''})}
+ function tmCol(i,dni){const L=[];TM[i].rows.forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});const k=L.indexOf(dni);return k<0?null:PAL[k%PAL.length]}
+ function tmView(i){const {u}=U[i],R=TM[i].rows,er=tmErrs(i),T=u.e-u.s;
+  document.getElementById('tl'+i).innerHTML=R.map((r,n)=>{const c=tmCol(i,r.dni),h=r.e-r.s,js=jsOf(u,n,r.s,r.dni),st=er[n]?'background:rgba(239,68,68,.18);color:#dc2626':c?'background:'+c[0]+';color:'+c[1]:'background:rgba(127,127,127,.2);color:var(--mut)';
+   return `<div style="flex:0 0 ${h/T*100}%;${st}" title="${E(nmOf(r.dni)||'Sin chofer')} · ${E(fL(r.s))} a ${E(fL(r.e))}"><b>${E(apel(nmOf(r.dni)))}</b><span>${hsT(h)} h${r.e-js>MAXH+1e-6?' · +'+hsT(r.e-js-MAXH)+' tol.':''}</span></div>`}).join('');
+  R.forEach((r,n)=>{const b=document.getElementById('tm'+i+'_'+n);if(!b)return;const c=tmCol(i,r.dni);b.style.borderColor=er[n]?'#ef4444':c?c[0]:'';b.querySelector('.rqdot').style.background=c?c[0]:'';b.querySelector('.rqte').textContent=er[n]?'⚠ '+er[n]:'';b.querySelector('.rqro').textContent=r.dni||'—'});
+  const L=[];R.forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});
+  document.getElementById('tot'+i).innerHTML=R.length>1?L.map(d=>{const X=R.filter(r=>r.dni===d),c=tmCol(i,d);return `<span class="rqdot" style="background:${c[0]}"></span><b>${E(nmOf(d))}</b>: ${hsT(X.reduce((a,r)=>a+r.e-r.s,0))} h en ${X.length} tramo${X.length>1?'s':''}`}).join('<br>'):''}
+ function tmRender(i){tmNorm(i);const {u}=U[i],R=TM[i].rows;
+  document.getElementById('tms'+i).innerHTML=R.map((r,n)=>{const js=jsOf(u,n,r.s,r.dni),tol=r.e-js>MAXH+1e-6;
+   return `<div class="rqtm" id="tm${i}_${n}"><div class="tt"><span class="rqdot"></span>${R.length>1?'Tramo '+(n+1)+' · ':''}desde ${E(fL(r.s))}</div>
+    <div class="rqd"><div><label for="tc${i}_${n}">Chofer</label><select id="tc${i}_${n}" data-n="${n}" data-k="d"><option value="">Elegí un chofer</option>${DL.map(z=>`<option value="${E(z.dni)}" ${z.dni===r.dni?'selected':''}>${E(z.n)}</option>`).join('')}</select></div><div><label>DNI</label><div class="rqro">${E(r.dni||'—')}</div></div></div>
+    <label for="te${i}_${n}">Maneja hasta</label><select id="te${i}_${n}" data-n="${n}" data-k="e">${r.O.map(z=>`<option value="${z.v}" ${Math.abs(z.v-r.e)<1e-6?'selected':''}>${E(z.l)}</option>`).join('')}</select>
+    ${tol?`<div class="rqtol">Usa la tolerancia: ${hsT(r.e-js)} h de jornada (+${hsT(r.e-js-MAXH)} h). Logística lo revisa al confirmar.</div>`:''}<div class="rqte"></div></div>`}).join('');tmView(i)}
+ U.forEach(({D,u},i)=>{if(D.closed||u.res||!document.getElementById('tms'+i))return;const td=dniOf(u.tent);TM[i]={rows:[{dni:DL.some(z=>z.dni===td)?td:'',e:null}]};tmRender(i);
+  document.getElementById('tms'+i).addEventListener('change',ev=>{const t=ev.target,n=+t.dataset.n,R=TM[i].rows;if(!t.dataset.k||!R[n])return;
+   if(t.dataset.k==='d'){R[n].dni=t.value;if(n===0&&u.prev){tmRender(i);return}tmView(i);return}
+   R[n].e=+t.value;TM[i].rows=R.slice(0,n+1);tmRender(i)})});
  if(!open.length)return;
  W.querySelectorAll('.rqu').forEach(b=>{const i=b.dataset.i;b.querySelectorAll('[name=ok'+i+']').forEach(r=>r.onchange=()=>{const y=b.querySelector('[name=ok'+i+']:checked').value==='1';
    b.querySelector('.rqy').style.display=y?'block':'none';b.querySelector('.rqn').style.display=y?'none':'block';b.querySelector('label.y').classList.toggle('on',y);b.querySelector('label.n').classList.toggle('on',!y)});
@@ -126,15 +184,12 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
   open.forEach(D=>RS.set(D,{R:[],seen:{}}));
   for(let i=0;i<U.length;i++){const {D,u}=U[i];if(D.closed)continue;const box=RS.get(D),tpr=u.tipo==='Chasis TPR',nm=tpr&&u.sm?u.sm:u.tr,y=document.querySelector('[name=ok'+i+']:checked').value==='1';
    if(!y){box.R.push({f:u.f,ok:false,why:document.getElementById('w'+i).value,txt:document.getElementById('x'+i).value.trim()});continue}
-   const g=p=>{const n=document.getElementById(p+i+'n');return n?{n:NU(n.value),dni:DG(document.getElementById(p+i+'d').value)}:null},A=g('a'),B=u.h>MAXH?g('b'):null;
-   if(A.n.length<3)return fail(nm+': falta el nombre del chofer.',document.getElementById('a'+i+'n'));
-   if(A.dni.length<6||A.dni.length>9)return fail(nm+': falta el DNI del chofer (sin puntos).',document.getElementById('a'+i+'d'));
-   if(B&&B.n.length<3)return fail(nm+': falta quién releva.',document.getElementById('b'+i+'n'));
-   if(B&&(B.dni.length<6||B.dni.length>9))return fail(nm+': falta el DNI de quien releva.',document.getElementById('b'+i+'d'));
-   if(B&&B.dni===A.dni)return fail(nm+': el que arranca y el que releva no pueden ser la misma persona.',document.getElementById('b'+i+'n'));
-   for(const z of [A,B].filter(Boolean)){if(box.seen[z.dni])return fail(z.n+' está cargado en dos camiones del mismo pedido: '+box.seen[z.dni]+' y '+nm+'.');box.seen[z.dni]=nm}
+   const R=(TM[i]||{rows:[]}).rows,ER=TM[i]?tmErrs(i):['Recargá la página.'],bi=ER.findIndex(Boolean);
+   if(!R.length||bi>=0)return fail(nm+(R.length>1?' (tramo '+(bi+1)+')':'')+': '+(ER[bi]||'faltan los choferes.'),document.getElementById('tm'+i+'_'+Math.max(0,bi)));
+   /* el mismo chofer no puede estar en dos camiones a la vez */
+   for(const r of R){const L=box.seen[r.dni]||(box.seen[r.dni]=[]),c=L.find(z=>z.s<r.e-1e-6&&z.e>r.s+1e-6);if(c)return fail(nmOf(r.dni)+' está en dos camiones al mismo tiempo: '+c.nm+' y '+nm+'.',document.getElementById('tm'+i+'_0'));L.push({s:r.s,e:r.e,nm})}
    /* patentes: solo se mandan si cambiaron; no pueden quedar vacías ni repetidas entre los camiones de la página */
-   const ti=document.getElementById('t'+i),si=document.getElementById('s'+i),tr=NU(ti.value),sm=tpr?u.sm:NU(si.value),x={f:u.f,ok:true,a:A,b:B};
+   const ti=document.getElementById('t'+i),si=document.getElementById('s'+i),tr=NU(ti.value),sm=tpr?u.sm:NU(si.value),x={f:u.f,ok:true,tm:R.map(r=>({n:nmOf(r.dni),dni:r.dni,e:r.e}))};
    const cT=PN(tr)!==PN(u.tr),cS=!tpr&&PN(sm)!==PN(u.sm);
    if(cT&&(PN(tr).length<5||PN(tr).length>8)){(ti.closest('details')||{}).open=true;return fail(nm+': la patente del tractor no es válida.',ti)}
    if(cS&&PN(sm)&&(PN(sm).length<5||PN(sm).length>8)){(si.closest('details')||{}).open=true;return fail(nm+': la patente del semi no es válida.',si)}
@@ -146,7 +201,7 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
    er.textContent='Revisá los datos: después de enviar no se puede modificar.';setTimeout(()=>{if(btn.dataset.ok2&&!btn.disabled){delete btn.dataset.ok2;btn.textContent='Enviar respuesta';btn.style.background=''}},8000);return}
   btn.disabled=true;btn.textContent='Enviando…';
   try{const L=open.map(D=>({k:D.k,r:RS.get(D).R})).filter(x=>x.r.length),j=L.length===1?await api('rq.send',L[0]):await api('rq.sendM',{L});
-   W.insertAdjacentHTML('afterbegin',`<div class="rqok">✔ <b>¡Respuesta enviada!</b><br>${j.n} confirmado${j.n===1?'':'s'}${j.no?' · '+j.no+' no pueden':''}${j.rev?'<br>'+j.rev+' quedan para revisión de Logística (descanso del chofer)':''}. Gracias.${(j.late||[]).length?`<br>⏰ <b>${E(j.late.join(', '))}</b>: la demanda ya se había cubierto. Quedó registrada tu respuesta; <b>no la mandes hasta que Logística te confirme</b>.`:''}${(j.gone||[]).length?`<br>🚫 <b>${E(j.gone.join(', '))}</b>: ${j.gone.length===1?'esa unidad ya no está pedida':'esas unidades ya no están pedidas'}, comunicate con Logística.`:''}</div>`);
+   W.insertAdjacentHTML('afterbegin',`<div class="rqok">✔ <b>¡Respuesta enviada!</b><br>${j.n} confirmado${j.n===1?'':'s'}${j.no?' · '+j.no+' no pueden':''}${j.rev?'<br>'+j.rev+' tramo'+(j.rev>1?'s quedan':' queda')+' para revisión de Logística (descanso o tolerancia)':''}. Gracias.${(j.late||[]).length?`<br>⏰ <b>${E(j.late.join(', '))}</b>: la demanda ya se había cubierto. Quedó registrada tu respuesta; <b>no la mandes hasta que Logística te confirme</b>.`:''}${(j.gone||[]).length?`<br>🚫 <b>${E(j.gone.join(', '))}</b>: ${j.gone.length===1?'esa unidad ya no está pedida':'esas unidades ya no están pedidas'}, comunicate con Logística.`:''}</div>`);
    try{window.scrollTo({top:0,behavior:'smooth'})}catch(x){}setTimeout(()=>rqPage(k),(j.late||[]).length||(j.gone||[]).length?12000:3500)}
   catch(x){fail(errTxt(x));btn.disabled=false;delete btn.dataset.ok2;btn.style.background='';btn.textContent='Enviar respuesta'}}}
 if(!RK||!SID)document.body.innerHTML='<div class="rqw"><div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El link está incompleto. Pedile uno nuevo a Logística.</div></div>';
