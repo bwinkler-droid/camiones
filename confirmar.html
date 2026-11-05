@@ -115,15 +115,21 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const tmTxt=z=>{const a=fL(z.s),b=fL(z.e);return a+' a '+(a.slice(0,9)===b.slice(0,9)?b.slice(-5):b)};
  const resTxt=(D,u,r)=>[D.op+(D.bq?' '+D.bq:'')+' · '+(u.tipo==='Chasis TPR'&&u.sm?u.sm+' / '+u.tr:u.tr+(u.sm?' / '+u.sm:''))].concat(r.tr.map(z=>'• '+z.n+': '+tmTxt(z).replace(/ · /g,' '))).join('\n');
  const resList=(D,u,r)=>`<div class="rqres">${r.tr.map(z=>`<div><b>${E(z.n)}</b><span>${E(tmTxt(z))}</span></div>`).join('')}<button type="button" class="rqcp" data-cp="${E(resTxt(D,u,r))}">📋 Copiar para mandar a los choferes</button></div>`;
+ const tpL=t=>t==='Playo'?'playo':t==='Batea'?'batea':t==='Chasis TPR'?'chasis TPR':String(t||'').toLowerCase();
+ const reqL=r=>Array.isArray(r)&&r.length?r.map(t=>tpL(t)+(t==='Chasis TPR'?'':'s')).join(' o ').replace('chasis TPR','chasis TPR'):'el tipo de unidad citado';
  const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',nm=tpr&&u.sm?u.sm:u.tr,sub=tpr&&u.sm?u.tr:(u.sm||'');
    return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>
    <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total</span></div>
    <div class="rqp">Chofer propuesto: <b>${u.tent?E(u.tent):'a definir por el transporte'}</b></div>
    ${u.prev&&!u.res?`<div class="rqprev">🕘 Esta unidad viene trabajando con <b>${E(u.prev.n)}</b> desde el ${E(fL(u.prev.js))}${u.prev.pe<u.s-1e-6?' (terminó el '+E(fL(u.prev.pe))+')':''}. Si sigue él, se cuenta la jornada que ya trae.</div>`:''}
-   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?(r.late?'⏰ Respondido tarde':'✔ Ya respondido')+(r.tr&&r.tr.length?'':': arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>${r.ok&&r.tr&&r.tr.length?resList(D,u,r):''}`:''}
+   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok&&r.ufN?'<b>🔁 Va '+E(r.ufN)+'</b> · ':''}${r.ok?(r.late?'⏰ Respondido tarde':'✔ Ya respondido')+(r.tr&&r.tr.length?'':': arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>${r.ok&&r.tr&&r.tr.length?resList(D,u,r):''}`:''}
    ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
    <div class="rqf rqy" style="display:${yes?'block':'none'}"><div class="rqtl" id="tl${i}"></div><div class="rqtlx"><span>${E(fL(u.s))}</span><span>${E(fL(u.e))}</span></div><div id="tms${i}" data-u="${i}"></div><div class="rqtot" id="tot${i}"></div>
-    <details class="rqpl"><summary>✏️ ¿Va con otra patente? Corregila acá</summary><div class="rqd"><div><label for="t${i}">Tractor</label><input id="t${i}" value="${E(u.tr)}" maxlength="12" style="text-transform:uppercase"></div><div><label for="s${i}">Semi</label><input id="s${i}" value="${E(u.sm)}" maxlength="12" style="text-transform:uppercase" ${tpr?'disabled title="El chasis TPR no se cambia"':''}></div></div><div class="rqhelp" style="margin-top:6px">Si la cambiás, se actualiza en el sistema de Logística.</div></details></div>
+    ${(u.alt||[]).length||(u.trs||[]).length>1?`<details class="rqpl"><summary id="ufs${i}">🔁 ¿Va con otra unidad u otro tractor? Elegilo de la lista</summary>
+    ${(u.alt||[]).length?`<label for="uf${i}">Unidad que va</label><select id="uf${i}" data-uf="${i}"><option value="">${E(u.tr)}${u.sm?' / '+E(u.sm):''} (la citada)</option>${u.alt.map(a=>`<option value="${a.f}" ${a.busy?'disabled':''}>${E(a.tr)}${a.sm?' / '+E(a.sm):''} · ${E(tpL(a.tipo))}${a.busy?' — '+E(a.busy):''}</option>`).join('')}</select>
+    <div class="rqhelp" style="margin-top:6px">Esta demanda requiere <b>${E(reqL(u.req))}</b>: solo aparecen unidades de ${E(u.t||'tu transporte')} que sirven para esta operación.</div>`:''}
+    ${(u.trs||[]).length>1?`<label for="tf${i}">Tractor que va</label><select id="tf${i}" data-tf="${i}"></select>
+    <div class="rqhelp" style="margin-top:6px">Si engancharon otro tractor (por ejemplo, lo sacaron de otra unidad), elegilo acá: las dos unidades intercambian tractor y el GPS sigue al tractor correcto.</div>`:''}</details>`:''}</div>
    <div class="rqf rqn" style="display:${yes?'none':'block'}"><label for="w${i}">Motivo</label><select id="w${i}"><option value="chofer" ${r.why==='chofer'?'selected':''}>No tengo chofer</option><option value="unidad" ${r.why==='unidad'?'selected':''}>La unidad no está disponible</option><option value="otro" ${r.why==='otro'?'selected':''}>Otro</option></select><label for="x${i}">Detalle (opcional)</label><input id="x${i}" maxlength="300" value="${E(r.txt||'')}" placeholder="Ej.: el chofer está enfermo"></div>`}</div>`};
  const secHtml=D=>{const ok=isDone(D);
    return `${multi?`<div class="rqsec">`:''}
@@ -205,6 +211,17 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
    if(t.dataset.k==='d')R[n].dni=t.value;else{R[n].e=+t.value;TM[i].rows=R.slice(0,n+1)}
    /* lo elegido en un camión cambia lo que se puede elegir en los otros (el mismo chofer no puede estar en dos lados) */
    Object.keys(TM).forEach(k=>+k===i?tmRender(i):tmRender(+k))})});
+ /* tractor que va: los tractores del transporte menos el de la unidad elegida; si el tractor está en otra unidad, se intercambian */
+ const tfFill=i=>{const sel=document.getElementById('tf'+i);if(!sel)return;const {u}=U[i],ufs=document.getElementById('uf'+i),uf=ufs&&ufs.value?+ufs.value:u.f,un=uf===u.f?{tr:u.tr,sm:u.sm}:(u.alt||[]).find(a=>a.f===uf)||{},cur=sel.value;
+  sel.innerHTML=`<option value="">${E(un.tr||'—')} (el de la unidad)</option>`+(u.trs||[]).filter(t=>t.f!==uf&&t.tr).map(t=>`<option value="${t.f}" ${t.busy?'disabled':''}>${E(t.tr)} · hoy en ${E(tpL(t.tipo))} ${E(t.sm||'')}${t.busy?' — '+E(t.busy):''}</option>`).join('');
+  if([...sel.options].some(o=>o.value===cur&&!o.disabled))sel.value=cur};
+ const sumUpd=i=>{const sm=document.getElementById('ufs'+i),uf=document.getElementById('uf'+i),tf=document.getElementById('tf'+i);if(!sm)return;const P=[];
+  if(uf&&uf.value)P.push('va '+uf.options[uf.selectedIndex].text.split(' · ')[0]);if(tf&&tf.value)P.push('tractor '+tf.options[tf.selectedIndex].text.split(' · ')[0]);
+  sm.textContent=P.length?'🔁 '+(t=>t[0].toUpperCase()+t.slice(1))(P.join(' · '))+' (en lugar de lo citado)':'🔁 ¿Va con otra unidad u otro tractor? Elegilo de la lista'};
+ U.forEach((_,i)=>tfFill(i));
+ W.querySelectorAll('[data-tf]').forEach(sl=>sl.addEventListener('change',()=>sumUpd(+sl.dataset.tf)));
+ W.querySelectorAll('[data-uf]').forEach(sl=>sl.addEventListener('change',()=>{tfFill(+sl.dataset.uf);sumUpd(+sl.dataset.uf)}));
+ W.querySelectorAll('[data-uf]').forEach(sl=>sl.addEventListener('change',()=>{}));
  if(!open.length)return;
  W.querySelectorAll('.rqu').forEach(b=>{const i=b.dataset.i;b.querySelectorAll('[name=ok'+i+']').forEach(r=>r.onchange=()=>{const y=b.querySelector('[name=ok'+i+']:checked').value==='1';
    b.querySelector('.rqy').style.display=y?'block':'none';b.querySelector('.rqn').style.display=y?'none':'block';b.querySelector('label.y').classList.toggle('on',y);b.querySelector('label.n').classList.toggle('on',!y)});
@@ -218,14 +235,10 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
    if(!R.length||bi>=0)return fail(nm+(R.length>1?' (tramo '+(bi+1)+')':'')+': '+(ER[bi]||'faltan los choferes.'),document.getElementById('tm'+i+'_'+Math.max(0,bi)));
    /* el mismo chofer no puede estar en dos camiones a la vez */
    for(const r of R){const L=box.seen[r.dni]||(box.seen[r.dni]=[]),c=L.find(z=>z.s<r.e-1e-6&&z.e>r.s+1e-6);if(c)return fail(nmOf(r.dni)+' está en dos camiones al mismo tiempo: '+c.nm+' y '+nm+'.',document.getElementById('tm'+i+'_0'));L.push({s:r.s,e:r.e,nm})}
-   /* patentes: solo se mandan si cambiaron; no pueden quedar vacías ni repetidas entre los camiones de la página */
-   const ti=document.getElementById('t'+i),si=document.getElementById('s'+i),tr=NU(ti.value),sm=tpr?u.sm:NU(si.value),x={f:u.f,ok:true,tm:R.map(r=>({n:nmOf(r.dni),dni:r.dni,e:r.e}))};
-   const cT=PN(tr)!==PN(u.tr),cS=!tpr&&PN(sm)!==PN(u.sm);
-   if(cT&&(PN(tr).length<5||PN(tr).length>8)){(ti.closest('details')||{}).open=true;return fail(nm+': la patente del tractor no es válida.',ti)}
-   if(cS&&PN(sm)&&(PN(sm).length<5||PN(sm).length>8)){(si.closest('details')||{}).open=true;return fail(nm+': la patente del semi no es válida.',si)}
-   if((cT||cS)&&PN(sm)&&PN(sm)===PN(tr)){(si.closest('details')||{}).open=true;return fail(nm+': el tractor y el semi no pueden tener la misma patente.',si)}
-   for(const p of [tr,sm].map(PN).filter(Boolean)){if(PL[p]&&PL[p]!==u.f){(ti.closest('details')||{}).open=true;return fail('La patente '+p+' está en dos camiones distintos.',ti)}PL[p]=u.f}
-   if(cT)x.tr=tr;if(cS)x.sm=sm;
+   /* otra unidad del transporte (elegida de la lista): no se puede elegir la misma en dos camiones */
+   const ufs=document.getElementById('uf'+i),uf=ufs&&ufs.value?+ufs.value:null,x={f:u.f,ok:true,tm:R.map(r=>({n:nmOf(r.dni),dni:r.dni,e:r.e}))};
+   if(uf){if(PL['u'+uf]){(ufs.closest('details')||{}).open=true;return fail('Elegiste la misma unidad en dos camiones ('+ufs.options[ufs.selectedIndex].text.split(' · ')[0]+').',ufs)}PL['u'+uf]=1;x.uf=uf}
+   {const tfs=document.getElementById('tf'+i),tf=tfs&&tfs.value?+tfs.value:null;if(tf){if(PL['t'+tf]){(tfs.closest('details')||{}).open=true;return fail('Elegiste el mismo tractor en dos camiones ('+tfs.options[tfs.selectedIndex].text.split(' · ')[0]+').',tfs)}PL['t'+tf]=1;x.tf=tf}}
    box.R.push(x)}
   if(!btn.dataset.ok2){btn.dataset.ok2=1;btn.textContent='Tocá de nuevo para confirmar el envío';btn.style.background='linear-gradient(135deg,#c2620c,#f59e0b)';
    er.textContent='Revisá los datos: después de enviar no se puede modificar.';setTimeout(()=>{if(btn.dataset.ok2&&!btn.disabled){delete btn.dataset.ok2;btn.textContent='Enviar respuesta';btn.style.background=''}},8000);return}
