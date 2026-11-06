@@ -85,7 +85,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
    La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
-const PAGE_V=11,NEED_SRV='2026-11-06c';
+const PAGE_V=12,NEED_SRV='2026-11-06c';
 const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
 const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
@@ -189,9 +189,9 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
   if(TOLH&&u.e>lim+1e-6&&u.e-js<=MAXH+TOLH+1e-6)O.push({v:u.e,l:fL(u.e)+' (fin · tolerancia)',tol:u.e-js});
   return O}
  function tmNorm(i){const {u}=U[i],st=TM[i],o=[];let t=u.s;
-  for(let n=0;t<u.e-1e-6&&n<40;n++){let r=st.rows[n];if(!r){const q=o[o.length-2];r={dni:q?q.dni:'',e:null}}
+  for(let n=0;t<u.e-1e-6&&n<40;n++){let r=st.rows[n];if(!r){const q=o[o.length-2];r={dni:q?q.dni:'',e:null,auto:true}}
    const O=tmOpts(i,o,t,r.dni);let e=r.e;if(!O.some(z=>Math.abs(z.v-e)<1e-6))e=O.length?(O.find(z=>z.tol)||O[O.length-1]).v:u.e;
-   o.push({dni:r.dni,s:t,e,O,js:jsOf(i,o,t,r.dni)});t=e}st.rows=o}
+   o.push({dni:r.dni,s:t,e,O,js:jsOf(i,o,t,r.dni),auto:!!r.auto});t=e}st.rows=o}
  function tmErrs(i){const {u}=U[i],R=TM[i].rows;return R.map((r,n)=>{if(!r.dni)return 'Elegí el chofer de este tramo.';
   if(n&&R[n-1].dni===r.dni)return 'Es el mismo chofer del tramo anterior: elegí otro.';
   const last=Math.abs(r.e-u.e)<1e-6,w=whyNot(i,R.slice(0,n),r.dni,r.s,r.e,last?MAXH+TOLH:MAXH);if(w)return w;
@@ -213,7 +213,10 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  U.forEach(({D,u},i)=>{if(D.closed||u.res||!document.getElementById('tms'+i))return;TM[i]={rows:[]}});
  U.forEach(({D,u},i)=>{if(!TM[i])return;const td=dniOf(u.tent),ok=td&&DL.some(z=>z.dni===td)&&!busyLbl(i,[],td,u.s);TM[i].rows=[{dni:ok?td:'',e:null}];tmRender(i);
   document.getElementById('tms'+i).addEventListener('change',ev=>{const t=ev.target,n=+t.dataset.n,R=TM[i].rows;if(!t.dataset.k||!R[n])return;
-   if(t.dataset.k==='d')R[n].dni=t.value;else{R[n].e=+t.value;TM[i].rows=R.slice(0,n+1)}
+   if(t.dataset.k==='d'){R[n].dni=t.value;R[n].auto=false;
+    /* rotación: el chofer elegido se repite cada dos tramos (1, 3, 5… y 2, 4, 6…) en los tramos que no se tocaron a mano */
+    for(let k=n+2;k<R.length;k+=2){if(R[k].auto||!R[k].dni){R[k].dni=t.value;R[k].auto=true}}}
+   else{R[n].e=+t.value;R[n].auto=false;TM[i].rows=R.slice(0,n+1)}
    /* lo elegido en un camión cambia lo que se puede elegir en los otros (el mismo chofer no puede estar en dos lados) */
    Object.keys(TM).forEach(k=>+k===i?tmRender(i):tmRender(+k))})});
  /* tractor que va: los tractores del transporte menos el de la unidad elegida; si el tractor está en otra unidad, se intercambian */
