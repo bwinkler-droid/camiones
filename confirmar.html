@@ -83,9 +83,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
    El link trae dos datos: r = código del pedido y s = identificador del servidor (implementación de Apps Script).
    Esta página no guarda nada: solo muestra el pedido y envía la respuesta al servidor del portal. */
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const QS=new URLSearchParams(location.search),RK=(QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
-const SRV='https://script.google.com/macros/s/'+SID+'/exec';
-async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,...p}),redirect:'follow',credentials:'omit'});
+/* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
+   La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
+const PAGE_V=11,NEED_SRV='2026-11-06c';
+const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
+const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
+async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
  const j=await r.json();if(j.err)throw new Error(j.err);return j}
 const fmtHs=x=>String(Math.round(x*100)/100).replace('.',',');
 function rqFit(){try{const sw=Math.min(screen.width||0,screen.height||0)||window.innerWidth,r=window.innerWidth/sw;document.body.style.zoom=(sw<900&&r>1.2)?r.toFixed(3):''}catch(e){}}
@@ -96,6 +99,8 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  /* un link puede traer varios pedidos del mismo transporte (códigos separados por punto): se muestran todos juntos */
  const KS=String(k).split('.').filter(x=>x.length>=20).slice(0,10);let DS;
  try{DS=await Promise.all(KS.map(c=>api('rq.get',{k:c}).then(d=>Object.assign(d,{k:c})).catch(x=>({k:c,err:errTxt(x)}))))}catch(x){DS=[{err:errTxt(x)}]}
+ /* servidor más viejo que esta página (se subió la página antes de publicar el código): no se deja responder con datos que no entendería */
+ if(DS.some(d=>!d.err&&(!d.bv||d.bv<NEED_SRV))){W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El sistema se está actualizando. Probá de nuevo en unos minutos con este mismo link.</div>`;return}
  const OKS=DS.filter(d=>!d.err);
  if(!OKS.length){W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">${E((DS[0]||{}).err||'El link no es válido.')}</div>`;return}
  if(OKS.some(d=>d.test)&&!document.getElementById('tstbar'))document.body.insertAdjacentHTML('afterbegin','<div id="tstbar">🧪 ENTORNO DE PRUEBA</div>');
@@ -250,7 +255,7 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
 document.addEventListener('click',async ev=>{const b=ev.target.closest('.rqcp');if(!b)return;const t=b.dataset.cp;let ok=false;
  try{await navigator.clipboard.writeText(t);ok=true}catch(e){try{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();ok=document.execCommand('copy');x.remove()}catch(e2){}}
  const o=b.textContent;b.textContent=ok?'✔ Copiado: pegalo en WhatsApp':'No se pudo copiar';setTimeout(()=>b.textContent=o,2500)});
-if(!RK||!SID)document.body.innerHTML='<div class="rqw"><div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El link está incompleto. Pedile uno nuevo a Logística.</div></div>';
+if(!RK||!SRV)document.body.innerHTML='<div class="rqw"><div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El link está incompleto. Pedile uno nuevo a Logística.</div></div>';
 else rqPage(RK);
 </script>
 </body></html>
