@@ -1,6 +1,6 @@
 /* App TPR Camiones: guarda la "cáscara" de la app para que abra rápido y sin conexión.
    La app siempre busca la versión nueva primero (si hay conexión); los datos nunca se guardan acá. */
-const C = 'tpr-app-v2', F = ['app.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const C = 'tpr-app-v3', F = ['app.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(F)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(K => Promise.all(K.filter(k => k !== C).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => { const u = new URL(e.request.url);
