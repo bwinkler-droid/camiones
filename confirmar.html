@@ -75,6 +75,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rqtol{color:#fbbf24}}:root[data-theme="dark"] .rqtol{color:#fbbf24}
 .rqres{margin-top:8px;border-radius:12px;background:rgba(34,197,94,.10);padding:8px 12px}.rqres>div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;padding:6px 0;border-bottom:1px solid rgba(34,197,94,.25);font-size:16px}.rqres>div:last-of-type{border-bottom:0}.rqres span{color:var(--mut)}
 .rqcp{margin-top:8px;width:100%;min-height:48px;font-size:17px;font-weight:700;border-radius:12px;border:2px solid #22c55e;background:transparent;color:#16a34a;cursor:pointer}
+.rqgap{text-align:center;font-size:13px;color:var(--mut);padding:8px 0;margin:6px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+.rqbh{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;font-size:14px;margin:14px 2px 4px;padding:8px 10px;border-radius:10px;background:rgba(127,127,127,.10)}.rqbh>span{display:block}
+.rqbh label.rqnp{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;font-size:13.5px!important;color:#dc2626!important;font-weight:700!important;text-transform:none!important;letter-spacing:0!important;white-space:nowrap}.rqbh label.rqnp input{width:20px!important;height:20px!important;margin:0!important;flex:none}
+.rqtm.rqno{border-color:#ef4444!important;background:rgba(239,68,68,.06)}.rqau{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:rgba(127,127,127,.15);color:var(--mut);margin-left:4px}
 </style></head>
 <body>
 <script>
@@ -85,7 +89,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
    La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
-const PAGE_V=12,NEED_SRV='2026-11-06c';
+const PAGE_V=13,NEED_SRV='2026-11-07a';
 const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
 const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
@@ -130,9 +134,7 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
    ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok&&r.ufN?'<b>🔁 Va '+E(r.ufN)+'</b> · ':''}${r.ok?(r.late?'⏰ Respondido tarde':'✔ Ya respondido')+(r.tr&&r.tr.length?'':': arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>${r.ok&&r.tr&&r.tr.length?resList(D,u,r):''}`:''}
    ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
    <div class="rqf rqy" style="display:${yes?'block':'none'}"><div class="rqtl" id="tl${i}"></div><div class="rqtlx"><span>${E(fL(u.s))}</span><span>${E(fL(u.e))}</span></div><div id="tms${i}" data-u="${i}"></div><div class="rqtot" id="tot${i}"></div>
-    ${(u.alt||[]).length||(u.trs||[]).length>1?`<details class="rqpl"><summary id="ufs${i}">🔁 ¿Va con otra unidad u otro tractor? Elegilo de la lista</summary>
-    ${(u.alt||[]).length?`<label for="uf${i}">Unidad que va</label><select id="uf${i}" data-uf="${i}"><option value="">${E(u.tr)}${u.sm?' / '+E(u.sm):''} (la citada)</option>${u.alt.map(a=>`<option value="${a.f}" ${a.busy?'disabled':''}>${E(a.tr)}${a.sm?' / '+E(a.sm):''} · ${E(tpL(a.tipo))}${a.busy?' — '+E(a.busy):''}</option>`).join('')}</select>
-    <div class="rqhelp" style="margin-top:6px">Esta demanda requiere <b>${E(reqL(u.req))}</b>: solo aparecen unidades de ${E(u.t||'tu transporte')} que sirven para esta operación.</div>`:''}
+    ${(u.trs||[]).length>1?`<details class="rqpl"><summary id="ufs${i}">🔁 ¿Engancharon otro tractor? Elegilo de la lista</summary>
     ${(u.trs||[]).length>1?`<label for="tf${i}">Tractor que va</label><select id="tf${i}" data-tf="${i}"></select>
     <div class="rqhelp" style="margin-top:6px">Si engancharon otro tractor (por ejemplo, lo sacaron de otra unidad), elegilo acá: las dos unidades intercambian tractor y el GPS sigue al tractor correcto.</div>`:''}</details>`:''}</div>
    <div class="rqf rqn" style="display:${yes?'none':'block'}"><label for="w${i}">Motivo</label><select id="w${i}"><option value="chofer" ${r.why==='chofer'?'selected':''}>No tengo chofer</option><option value="unidad" ${r.why==='unidad'?'selected':''}>La unidad no está disponible</option><option value="otro" ${r.why==='otro'?'selected':''}>Otro</option></select><label for="x${i}">Detalle (opcional)</label><input id="x${i}" maxlength="300" value="${E(r.txt||'')}" placeholder="Ej.: el chofer está enfermo"></div>`}</div>`};
@@ -183,43 +185,75 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  /* para el desplegable de choferes: si no puede arrancar a la hora t, hasta cuándo no está disponible */
  function busyLbl(ui,before,dni,t){const S=segsOf(dni,ui,before),ov=S.find(z=>z.s<=t+1e-6&&z.e>t+1e-6);if(ov)return ' (trabaja hasta el '+fL(ov.e)+')';
   const P=blocks(S.filter(z=>z.e<=t+1e-6)).pop();if(P&&t-P.e<rest(P)-1e-6&&P.s+MAXH<=t+1-1e-6)return ' (descansa hasta el '+fL(P.e+rest(P))+')';return ''}
- function tmOpts(ui,before,t,dni){const {u}=U[ui],js=jsOf(ui,before,t,dni),lim=Math.min(js+MAXH,u.e),O=[];
-  for(let k=1;t+k<lim-1e-6;k++)O.push({v:t+k,l:fL(t+k)});
-  if(lim>t+1e-6)O.push({v:lim,l:fL(lim)+(Math.abs(lim-u.e)<1e-6?' (fin)':' (máx. '+MAXH+' h)')});
-  if(TOLH&&u.e>lim+1e-6&&u.e-js<=MAXH+TOLH+1e-6)O.push({v:u.e,l:fL(u.e)+' (fin · tolerancia)',tol:u.e-js});
-  return O}
- function tmNorm(i){const {u}=U[i],st=TM[i],o=[];let t=u.s;
-  for(let n=0;t<u.e-1e-6&&n<40;n++){let r=st.rows[n];if(!r){const q=o[o.length-2];r={dni:q?q.dni:'',e:null,auto:true}}
-   const O=tmOpts(i,o,t,r.dni);let e=r.e;if(!O.some(z=>Math.abs(z.v-e)<1e-6))e=O.length?(O.find(z=>z.tol)||O[O.length-1]).v:u.e;
-   o.push({dni:r.dni,s:t,e,O,js:jsOf(i,o,t,r.dni),auto:!!r.auto});t=e}st.rows=o}
- function tmErrs(i){const {u}=U[i],R=TM[i].rows;return R.map((r,n)=>{if(!r.dni)return 'Elegí el chofer de este tramo.';
-  if(n&&R[n-1].dni===r.dni)return 'Es el mismo chofer del tramo anterior: elegí otro.';
-  const last=Math.abs(r.e-u.e)<1e-6,w=whyNot(i,R.slice(0,n),r.dni,r.s,r.e,last?MAXH+TOLH:MAXH);if(w)return w;
-  if(!r.O.length)return apel(nmOf(r.dni))+' ya cumplió '+MAXH+' h de jornada: elegí otro chofer para este tramo.';return ''})}
- function tmCol(i,dni){const L=[];TM[i].rows.forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});const k=L.indexOf(dni);return k<0?null:PAL[k%PAL.length]}
- function tmView(i){const {u}=U[i],R=TM[i].rows,er=tmErrs(i),T=u.e-u.s;
-  document.getElementById('tl'+i).innerHTML=R.map((r,n)=>{const c=tmCol(i,r.dni),h=r.e-r.s,st=er[n]?'background:rgba(239,68,68,.18);color:#dc2626':c?'background:'+c[0]+';color:'+c[1]:'background:rgba(127,127,127,.2);color:var(--mut)';
-   return `<div style="flex:0 0 ${h/T*100}%;${st}" title="${E(nmOf(r.dni)||'Sin chofer')} · ${E(fL(r.s))} a ${E(fL(r.e))}"><b>${E(apel(nmOf(r.dni)))}</b><span>${hsT(h)} h${r.e-r.js>MAXH+1e-6?' · +'+hsT(r.e-r.js-MAXH)+' tol.':''}</span></div>`}).join('');
-  R.forEach((r,n)=>{const b=document.getElementById('tm'+i+'_'+n);if(!b)return;const c=tmCol(i,r.dni);b.style.borderColor=er[n]?'#ef4444':c?c[0]:'';b.querySelector('.rqdot').style.background=c?c[0]:'';b.querySelector('.rqte').textContent=er[n]?'⚠ '+er[n]:'';b.querySelector('.rqro').textContent=r.dni||'—'});
-  const L=[];R.forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});
-  document.getElementById('tot'+i).innerHTML=R.length>1?L.map(d=>{const X=R.filter(r=>r.dni===d),c=tmCol(i,d);return `<span class="rqdot" style="background:${c[0]}"></span><b>${E(nmOf(d))}</b>: ${hsT(X.reduce((a,r)=>a+r.e-r.s,0))} h en ${X.length} tramo${X.length>1?'s':''}`}).join('<br>'):''}
- function tmRender(i){tmNorm(i);const {u}=U[i],R=TM[i].rows;
-  document.getElementById('tms'+i).innerHTML=R.map((r,n)=>{const tol=r.e-r.js>MAXH+1e-6,bf=R.slice(0,n);
-   return `<div class="rqtm" id="tm${i}_${n}"><div class="tt"><span class="rqdot"></span>${R.length>1?'Tramo '+(n+1)+' · ':''}desde ${E(fL(r.s))}</div>
-    <div class="rqd"><div><label for="tc${i}_${n}">Chofer</label><select id="tc${i}_${n}" data-n="${n}" data-k="d"><option value="">Elegí un chofer</option>${DL.map(z=>{const bl=z.dni===r.dni?'':busyLbl(i,bf,z.dni,r.s);return `<option value="${E(z.dni)}" ${z.dni===r.dni?'selected':''} ${bl?'disabled':''}>${E(z.n)}${E(bl)}</option>`}).join('')}</select></div><div><label>DNI</label><div class="rqro">${E(r.dni||'—')}</div></div></div>
-    <label for="te${i}_${n}">Maneja hasta</label><select id="te${i}_${n}" data-n="${n}" data-k="e">${r.O.map(z=>`<option value="${z.v}" ${Math.abs(z.v-r.e)<1e-6?'selected':''}>${E(z.l)}</option>`).join('')}</select>
-    ${tol?`<div class="rqtol">Usa la tolerancia: ${hsT(r.e-r.js)} h de jornada (+${hsT(r.e-r.js-MAXH)} h). Logística lo revisa al confirmar.</div>`:''}<div class="rqte"></div></div>`}).join('');tmView(i)}
- const tmAll=()=>Object.keys(TM).forEach(k=>tmView(+k));
- U.forEach(({D,u},i)=>{if(D.closed||u.res||!document.getElementById('tms'+i))return;TM[i]={rows:[]}});
- U.forEach(({D,u},i)=>{if(!TM[i])return;const td=dniOf(u.tent),ok=td&&DL.some(z=>z.dni===td)&&!busyLbl(i,[],td,u.s);TM[i].rows=[{dni:ok?td:'',e:null}];tmRender(i);
-  document.getElementById('tms'+i).addEventListener('change',ev=>{const t=ev.target,n=+t.dataset.n,R=TM[i].rows;if(!t.dataset.k||!R[n])return;
-   if(t.dataset.k==='d'){R[n].dni=t.value;R[n].auto=false;
-    /* rotación: el chofer elegido se repite cada dos tramos (1, 3, 5… y 2, 4, 6…) en los tramos que no se tocaron a mano */
-    for(let k=n+2;k<R.length;k+=2){if(R[k].auto||!R[k].dni){R[k].dni=t.value;R[k].auto=true}}}
-   else{R[n].e=+t.value;R[n].auto=false;TM[i].rows=R.slice(0,n+1)}
-   /* lo elegido en un camión cambia lo que se puede elegir en los otros (el mismo chofer no puede estar en dos lados) */
-   Object.keys(TM).forEach(k=>+k===i?tmRender(i):tmRender(+k))})});
- /* tractor que va: los tractores del transporte menos el de la unidad elegida; si el tractor está en otra unidad, se intercambian */
+ /* bloques (horarios pedidos) de un camión: los fija Logística; entre bloque y bloque no le toca */
+const WN=u=>u.win&&u.win.length?u.win:[[u.s,u.e]];
+const unN=f=>{const a=(U.find(x=>x.u.f==f)||{}).u||null;if(a)return a.tipo==='Chasis TPR'&&a.sm?a.sm:a.tr;for(const x of U){const z=(x.u.alt||[]).find(q=>q.f==f);if(z)return z.tipo==='Chasis TPR'&&z.sm?z.sm:z.tr}return '?'};
+const real=R=>R.filter(r=>!r.gap&&!r.no);
+function tmOpts(ui,before,t,dni,E){const js=jsOf(ui,before,t,dni),lim=Math.min(js+MAXH,E),O=[];
+ for(let k=1;t+k<lim-1e-6;k++)O.push({v:t+k,l:fL(t+k)});
+ if(lim>t+1e-6)O.push({v:lim,l:fL(lim)+(Math.abs(lim-E)<1e-6?' (fin del turno)':' (máx. '+MAXH+' h)')});
+ if(TOLH&&E>lim+1e-6&&E-js<=MAXH+TOLH+1e-6)O.push({v:E,l:fL(E)+' (fin · tolerancia)',tol:E-js});
+ return O}
+/* arma la lista de tramos del camión: por cada bloque, tramos encadenados (o "no puedo este turno"); entre bloques, el hueco */
+function tmNorm(i){const {u}=U[i],st=TM[i],W=WN(u),o=[];st.B=st.B||{};st.no=st.no||{};
+ W.forEach((b,bi)=>{const prevE=o.length?o[o.length-1].e:u.s;if(b[0]>prevE+1e-6)o.push({gap:true,s:prevE,e:b[0]});
+  if(st.no[bi]){o.push({no:true,bi,s:b[0],e:b[1]});return}
+  const L=st.B[bi]||[],n2=[];let t=b[0];
+  for(let n=0;t<b[1]-1e-6&&n<40;n++){let r=L[n];if(!r){const RR=real(o).concat(n2),q=RR[RR.length-2];r={dni:q?q.dni:'',uf:q?q.uf:null,e:null,auto:true}}
+   const bf=real(o).concat(n2),O=tmOpts(i,bf,t,r.dni,b[1]);let e=r.e;if(!O.some(z=>Math.abs(z.v-e)<1e-6))e=O.length?(O.find(z=>z.tol)||O[O.length-1]).v:b[1];
+   n2.push({dni:r.dni,uf:r.uf||null,s:t,e,O,js:jsOf(i,bf,t,r.dni),auto:!!r.auto,bi,k:n,E:b[1]});t=e}
+  st.B[bi]=n2;n2.forEach(x=>o.push(x))});
+ if(o.length&&o[o.length-1].e<u.e-1e-6)o.push({gap:true,s:o[o.length-1].e,e:u.e});
+ st.rows=o}
+/* camión de un tramo: el citado o, si el transporte eligió otro suyo, ese (tiene que estar libre en ese horario) */
+const ufOf=(i,r)=>r.uf||U[i].u.f;
+function unitWhy(i,r){const f=ufOf(i,r);if(f==U[i].u.f)return '';const a=(U[i].u.alt||[]).find(z=>z.f==f);if(!a)return 'Ese camión no está disponible: elegí otro.';
+ if(a.busy&&!a.bz)return unN(f)+' '+a.busy+'.';const b=(a.bz||[]).find(z=>z[0]<r.e-1e-6&&z[1]>r.s+1e-6);if(b)return unN(f)+' ya tiene trabajo de '+fL(b[0])+' a '+fL(b[1])+'.';return ''}
+/* el mismo camión no puede estar en dos tramos que se pisan (en este lugar o en otro de la página) */
+function unitClash(i,n){const r=TM[i].rows[n],f=ufOf(i,r);for(const k of Object.keys(TM)){const R=TM[k].rows||[];for(let m=0;m<R.length;m++){if(+k===i&&m===n)continue;const x=R[m];if(x.gap||x.no)continue;
+  if(ufOf(+k,x)==f&&x.s<r.e-1e-6&&x.e>r.s+1e-6)return unN(f)+' ya va '+(+k===i?'en otro tramo de este lugar':'en otro lugar')+' de '+fL(x.s)+' a '+fL(x.e)+'.'}}return ''}
+function tmErrs(i){const R=TM[i].rows;return R.map((r,n)=>{if(r.gap)return '';if(r.no)return '';if(!r.dni)return 'Elegí el chofer de este tramo.';
+ const p=n?R[n-1]:null;if(p&&!p.gap&&!p.no&&p.dni===r.dni&&ufOf(i,p)==ufOf(i,r))return 'Es el mismo chofer y el mismo camión del tramo anterior: extendé el anterior o elegí otro chofer.';
+ const last=Math.abs(r.e-r.E)<1e-6,w=whyNot(i,real(R.slice(0,n)),r.dni,r.s,r.e,last?MAXH+TOLH:MAXH);if(w)return w;
+ const uw=unitWhy(i,r)||unitClash(i,n);if(uw)return uw;
+ if(!r.O.length)return apel(nmOf(r.dni))+' ya cumplió '+MAXH+' h de jornada: elegí otro chofer para este tramo.';return ''})}
+function tmCol(i,dni){const L=[];real(TM[i].rows).forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});const k=L.indexOf(dni);return k<0?null:PAL[k%PAL.length]}
+function tmView(i){const {u}=U[i],R=TM[i].rows,er=tmErrs(i),T=u.e-u.s;
+ document.getElementById('tl'+i).innerHTML=R.map((r,n)=>{const h=r.e-r.s;if(r.gap)return `<div style="flex:0 0 ${h/T*100}%;background:repeating-linear-gradient(45deg,rgba(127,127,127,.12) 0 6px,transparent 6px 12px);color:var(--mut)" title="No te toca"><span>—</span></div>`;
+  if(r.no)return `<div style="flex:0 0 ${h/T*100}%;background:rgba(239,68,68,.18);color:#dc2626" title="No puedo este turno"><b>No</b><span>${hsT(h)} h</span></div>`;
+  const c=tmCol(i,r.dni),st=er[n]?'background:rgba(239,68,68,.18);color:#dc2626':c?'background:'+c[0]+';color:'+c[1]:'background:rgba(127,127,127,.2);color:var(--mut)',o=ufOf(i,r)!=u.f;
+  return `<div style="flex:0 0 ${h/T*100}%;${st}" title="${E(nmOf(r.dni)||'Sin chofer')} · ${E(unN(ufOf(i,r)))} · ${E(fL(r.s))} a ${E(fL(r.e))}"><b>${E(apel(nmOf(r.dni)))}</b><span>${o?E(unN(ufOf(i,r)))+' · ':''}${hsT(h)} h${r.e-r.js>MAXH+1e-6?' · +tol.':''}</span></div>`}).join('');
+ R.forEach((r,n)=>{const b=document.getElementById('tm'+i+'_'+n);if(!b||r.gap||r.no)return;const c=tmCol(i,r.dni);b.style.borderColor=er[n]?'#ef4444':c?c[0]:'';b.querySelector('.rqdot').style.background=c?c[0]:'';b.querySelector('.rqte').textContent=er[n]?'⚠ '+er[n]:'';b.querySelector('.rqro').textContent=r.dni||'—'});
+ const RR=real(R),L=[];RR.forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});
+ document.getElementById('tot'+i).innerHTML=RR.length>1?L.map(d=>{const X=RR.filter(r=>r.dni===d),c=tmCol(i,d);return `<span class="rqdot" style="background:${c[0]}"></span><b>${E(nmOf(d))}</b>: ${hsT(X.reduce((a,r)=>a+r.e-r.s,0))} h en ${X.length} tramo${X.length>1?'s':''}`}).join('<br>'):''}
+const MOTN={chofer:'No tengo chofer',unidad:'No tengo camión disponible',otro:'Otro'};
+function tmRender(i){tmNorm(i);const {u}=U[i],R=TM[i].rows,W=WN(u),multi=W.length>1,alt=(u.alt||[]).filter(a=>!(a.busy&&!a.bz));let tn=0;
+ document.getElementById('tms'+i).innerHTML=R.map((r,n)=>{
+  if(r.gap)return `<div class="rqgap">— No te toca de ${E(fL(r.s))} a ${E(fL(r.e))} —</div>`;
+  const hdr=multi&&(r.no||r.k===0)?`<div class="rqbh"><span><b>Turno ${r.bi+1} de ${W.length}</b><br>${E(fL(W[r.bi][0]))} → ${E(fL(W[r.bi][1]))}</span><label class="rqnp"><input type="checkbox" data-nob="${r.bi}" ${r.no?'checked':''}> No puedo este turno</label></div>`:'';
+  if(r.no){const z=TM[i].no[r.bi]||{};return hdr+`<div class="rqtm rqno" id="tm${i}_${n}"><div class="tt">❌ No cubro este turno</div><label>Motivo</label><select data-nobw="${r.bi}">${Object.keys(MOTN).map(k=>`<option value="${k}" ${z.why===k?'selected':''}>${MOTN[k]}</option>`).join('')}</select><label>Detalle (opcional)</label><input data-nobt="${r.bi}" value="${E(z.txt||'')}" maxlength="300"></div>`}
+  const tol=r.e-r.js>MAXH+1e-6,bf=real(R.slice(0,n));tn++;const fu=ufOf(i,r);
+  return hdr+`<div class="rqtm" id="tm${i}_${n}"><div class="tt"><span class="rqdot"></span>${real(R).length>1?'Tramo '+tn+' · ':''}desde ${E(fL(r.s))}${r.auto&&r.k>=0&&tn>2?' <span class="rqau">se repite solo</span>':''}</div>
+   ${alt.length?`<label for="tu${i}_${n}">Camión</label><select id="tu${i}_${n}" data-n="${n}" data-k="u"><option value="${u.f}" ${fu==u.f?'selected':''}>${E(unN(u.f))} (el citado)</option>${alt.map(a=>{const b=(a.bz||[]).find(z=>z[0]<r.e-1e-6&&z[1]>r.s+1e-6);return `<option value="${a.f}" ${fu==a.f?'selected':''} ${b&&fu!=a.f?'disabled':''}>${E(a.tipo==='Chasis TPR'&&a.sm?a.sm:a.tr)}${a.sm&&a.tipo!=='Chasis TPR'?' / '+E(a.sm):''}${b?' (ocupado hasta '+E(fL(b[1]))+')':''}</option>`}).join('')}</select>`:''}
+   <div class="rqd"><div><label for="tc${i}_${n}">Chofer</label><select id="tc${i}_${n}" data-n="${n}" data-k="d"><option value="">Elegí un chofer</option>${DL.map(z=>{const bl=z.dni===r.dni?'':busyLbl(i,bf,z.dni,r.s);return `<option value="${E(z.dni)}" ${z.dni===r.dni?'selected':''} ${bl?'disabled':''}>${E(z.n)}${E(bl)}</option>`}).join('')}</select></div><div><label>DNI</label><div class="rqro">${E(r.dni||'—')}</div></div></div>
+   <label for="te${i}_${n}">Maneja hasta</label><select id="te${i}_${n}" data-n="${n}" data-k="e">${r.O.map(z=>`<option value="${z.v}" ${Math.abs(z.v-r.e)<1e-6?'selected':''}>${E(z.l)}</option>`).join('')}</select>
+   ${tol?`<div class="rqtol">Usa la tolerancia: ${hsT(r.e-r.js)} h de jornada (+${hsT(r.e-r.js-MAXH)} h). Logística lo revisa al confirmar.</div>`:''}<div class="rqte"></div></div>`}).join('');tmView(i)}
+const tmAll=()=>Object.keys(TM).forEach(k=>tmView(+k));
+U.forEach(({D,u},i)=>{if(D.closed||u.res||!document.getElementById('tms'+i))return;TM[i]={rows:[],B:{},no:{}}});
+U.forEach(({D,u},i)=>{if(!TM[i])return;const td=dniOf(u.tent),ok=td&&DL.some(z=>z.dni===td)&&!busyLbl(i,[],td,WN(u)[0][0]);TM[i].B={0:[{dni:ok?td:'',e:null,uf:null}]};tmRender(i);
+ const box=document.getElementById('tms'+i),again=()=>Object.keys(TM).forEach(k=>tmRender(+k));
+ box.addEventListener('change',ev=>{const t=ev.target,st=TM[i];
+  if(t.dataset.nob!=null){const bi=+t.dataset.nob;if(t.checked)st.no[bi]={why:'chofer',txt:''};else delete st.no[bi];again();return}
+  if(t.dataset.nobw!=null){(st.no[+t.dataset.nobw]||{}).why=t.value;return}
+  const n=+t.dataset.n,r=st.rows[n];if(!t.dataset.k||!r||r.gap||r.no)return;const Lb=st.B[r.bi],x=Lb[r.k];
+  if(t.dataset.k==='d'||t.dataset.k==='u'){if(t.dataset.k==='d')x.dni=t.value;else x.uf=+t.value===u.f?null:+t.value;x.auto=false;
+   /* rotación: camión y chofer elegidos se repiten cada dos tramos (1, 3, 5… y 2, 4, 6…), también en los turnos siguientes, salvo lo tocado a mano */
+   const RR=real(st.rows),p=RR.indexOf(r);for(let q=p+2;q<RR.length;q+=2){const y=st.B[RR[q].bi][RR[q].k];if(y.auto||(t.dataset.k==='d'?!y.dni:!y.uf)){if(t.dataset.k==='d')y.dni=x.dni;else y.uf=x.uf;y.auto=true}}}
+  else{x.e=+t.value;x.auto=false;st.B[r.bi]=Lb.slice(0,r.k+1)}
+  /* lo elegido en un camión cambia lo que se puede elegir en los otros (el mismo chofer o camión no puede estar en dos lados) */
+  again()});
+ box.addEventListener('input',ev=>{const t=ev.target;if(t.dataset.nobt!=null)(TM[i].no[+t.dataset.nobt]||{}).txt=t.value})});
+/* tractor que va: los tractores del transporte menos el de la unidad elegida; si el tractor está en otra unidad, se intercambian */
  const tfFill=i=>{const sel=document.getElementById('tf'+i);if(!sel)return;const {u}=U[i],ufs=document.getElementById('uf'+i),uf=ufs&&ufs.value?+ufs.value:u.f,un=uf===u.f?{tr:u.tr,sm:u.sm}:(u.alt||[]).find(a=>a.f===uf)||{},cur=sel.value;
   sel.innerHTML=`<option value="">${E(un.tr||'—')} (el de la unidad)</option>`+(u.trs||[]).filter(t=>t.f!==uf&&t.tr).map(t=>`<option value="${t.f}" ${t.busy?'disabled':''}>${E(t.tr)} · hoy en ${E(tpL(t.tipo))} ${E(t.sm||'')}${t.busy?' — '+E(t.busy):''}</option>`).join('');
   if([...sel.options].some(o=>o.value===cur&&!o.disabled))sel.value=cur};
@@ -239,13 +273,13 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
   open.forEach(D=>RS.set(D,{R:[],seen:{}}));
   for(let i=0;i<U.length;i++){const {D,u}=U[i];if(D.closed)continue;const box=RS.get(D),tpr=u.tipo==='Chasis TPR',nm=tpr&&u.sm?u.sm:u.tr,y=document.querySelector('[name=ok'+i+']:checked').value==='1';
    if(!y){box.R.push({f:u.f,ok:false,why:document.getElementById('w'+i).value,txt:document.getElementById('x'+i).value.trim()});continue}
-   const R=(TM[i]||{rows:[]}).rows,ER=TM[i]?tmErrs(i):['Recargá la página.'],bi=ER.findIndex(Boolean);
-   if(!R.length||bi>=0)return fail(nm+(R.length>1?' (tramo '+(bi+1)+')':'')+': '+(ER[bi]||'faltan los choferes.'),document.getElementById('tm'+i+'_'+Math.max(0,bi)));
+   const R0=(TM[i]||{rows:[]}).rows,ER=TM[i]?tmErrs(i):['Recargá la página.'],bi=ER.findIndex(Boolean),R=real(R0);
+   if(!R0.length||bi>=0)return fail(nm+(R.length>1?' (tramo '+(real(R0.slice(0,bi+1)).length)+')':'')+': '+(ER[bi]||'faltan los choferes.'),document.getElementById('tm'+i+'_'+Math.max(0,bi)));
+   if(!R.length)return fail(nm+': marcaste "No puedo" en todos los turnos. Respondé "No puedo" para este camión.',document.getElementById('tm'+i+'_0'));
    /* el mismo chofer no puede estar en dos camiones a la vez */
    for(const r of R){const L=box.seen[r.dni]||(box.seen[r.dni]=[]),c=L.find(z=>z.s<r.e-1e-6&&z.e>r.s+1e-6);if(c)return fail(nmOf(r.dni)+' está en dos camiones al mismo tiempo: '+c.nm+' y '+nm+'.',document.getElementById('tm'+i+'_0'));L.push({s:r.s,e:r.e,nm})}
    /* otra unidad del transporte (elegida de la lista): no se puede elegir la misma en dos camiones */
-   const ufs=document.getElementById('uf'+i),uf=ufs&&ufs.value?+ufs.value:null,x={f:u.f,ok:true,tm:R.map(r=>({n:nmOf(r.dni),dni:r.dni,e:r.e}))};
-   if(uf){if(PL['u'+uf]){(ufs.closest('details')||{}).open=true;return fail('Elegiste la misma unidad en dos camiones ('+ufs.options[ufs.selectedIndex].text.split(' · ')[0]+').',ufs)}PL['u'+uf]=1;x.uf=uf}
+   const x={f:u.f,ok:true,bl:WN(u).map((b,k)=>TM[i].no[k]?{s:b[0],e:b[1],no:1,why:TM[i].no[k].why||'otro',txt:(TM[i].no[k].txt||'').trim()}:{s:b[0],e:b[1],tm:R.filter(r=>r.bi===k).map(r=>Object.assign({n:nmOf(r.dni),dni:r.dni,e:r.e},r.uf&&r.uf!=u.f?{uf:r.uf}:{}))})};
    {const tfs=document.getElementById('tf'+i),tf=tfs&&tfs.value?+tfs.value:null;if(tf){if(PL['t'+tf]){(tfs.closest('details')||{}).open=true;return fail('Elegiste el mismo tractor en dos camiones ('+tfs.options[tfs.selectedIndex].text.split(' · ')[0]+').',tfs)}PL['t'+tf]=1;x.tf=tf}}
    box.R.push(x)}
   if(!btn.dataset.ok2){btn.dataset.ok2=1;btn.textContent='Tocá de nuevo para confirmar el envío';btn.style.background='linear-gradient(135deg,#c2620c,#f59e0b)';
