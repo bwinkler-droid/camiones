@@ -89,12 +89,23 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
    La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
-const PAGE_V=13,NEED_SRV='2026-11-07a';
+const PAGE_V=14,NEED_SRV='2026-11-10d';
 const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
 const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
  const j=await r.json();if(j.err)throw new Error(j.err);return j}
 const fmtHs=x=>String(Math.round(x*100)/100).replace('.',',');
+/* Jornada y descanso: son las MISMAS reglas del servidor (archivo Reglas de Apps Script). Llegan con la página (archivo Confirmar)
+   o con el primer pedido (GitHub Pages). Los trabajos del chofer se pasan como tareas sueltas identificadas por su DNI.
+   Si por algún motivo no llegaron, el link no controla y el servidor igual valida todo al recibir la respuesta. */
+const RGok=()=>typeof restErr==='function'&&typeof inicioJornada==='function'&&typeof jornadaPrevia==='function';
+function rgT(S,dni,nm){const N={},L=S.map((z,k)=>{N['w'+k]=z.u||'';return {f:'w'+k,s:z.s,e:z.e,c:'C',chAlt:nm||'X',dniAlt:dni}});return {L,fo:id=>({t:'',tr:N[id]||''})}}
+/* por qué el chofer no puede manejar de s a e ('' si puede); lim: jornada máxima de este tramo */
+function rgWhy(S,dni,nm,s,e,lim,fmt){if(!RGok())return '';nm=nm||'El chofer';const x={f:'cur',s,e,c:'C',chAlt:nm,dniAlt:dni},T=rgT(S,dni,nm),no=()=>false;
+ return restErr(x,T.L,T.fo,no,fmt,true)||restErr(x,T.L,T.fo,no,fmt,false,lim)||''}
+/* desde cuándo viene la jornada si maneja desde t, y la última jornada terminada antes de t ({s,e,des}) */
+function rgIni(S,dni,t){if(!RGok()||!dni)return t;const T=rgT(S,dni);return inicioJornada({f:'cur',s:t,e:t,chAlt:'X',dniAlt:dni},T.L,T.fo)}
+function rgPrev(S,dni,t){if(!RGok()||!dni)return null;const T=rgT(S,dni);return jornadaPrevia({f:'cur',s:t,e:t,chAlt:'X',dniAlt:dni},T.L,T.fo)}
 function rqFit(){try{const sw=Math.min(screen.width||0,screen.height||0)||window.innerWidth,r=window.innerWidth/sw;document.body.style.zoom=(sw<900&&r>1.2)?r.toFixed(3):''}catch(e){}}
 async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!window.__rqfit){window.__rqfit=1;window.addEventListener('resize',rqFit);window.addEventListener('orientationchange',()=>setTimeout(rqFit,300))}
  let mv=document.querySelector('meta[name=viewport]');if(!mv){mv=document.createElement('meta');mv.name='viewport';document.head.appendChild(mv)}mv.content='width=device-width, initial-scale=1, viewport-fit=cover';
@@ -102,9 +113,10 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const W=document.getElementById('rqw'),E=s=>esc(s),errTxt=x=>x.message==='Failed to fetch'?'No hay conexión. Probá de nuevo.':x.message;
  /* un link puede traer varios pedidos del mismo transporte (códigos separados por punto): se muestran todos juntos */
  const KS=String(k).split('.').filter(x=>x.length>=20).slice(0,10);let DS;
- try{DS=await Promise.all(KS.map(c=>api('rq.get',{k:c}).then(d=>Object.assign(d,{k:c})).catch(x=>({k:c,err:errTxt(x)}))))}catch(x){DS=[{err:errTxt(x)}]}
+ try{DS=await Promise.all(KS.map((c,ix)=>api('rq.get',Object.assign({k:c},!ix&&!RGok()?{rg:1}:{})).then(d=>Object.assign(d,{k:c})).catch(x=>({k:c,err:errTxt(x)}))))}catch(x){DS=[{err:errTxt(x)}]}
  /* servidor más viejo que esta página (se subió la página antes de publicar el código): no se deja responder con datos que no entendería */
  if(DS.some(d=>!d.err&&(!d.bv||d.bv<NEED_SRV))){W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">El sistema se está actualizando. Probá de nuevo en unos minutos con este mismo link.</div>`;return}
+ {const g=DS.find(d=>d&&d.reglas);if(g&&!RGok())try{(0,eval)(g.reglas)}catch(x){}}
  const OKS=DS.filter(d=>!d.err);
  if(!OKS.length){W.innerHTML=`<div class="rqhd"><div class="k">TPR · Confirmación de camiones</div></div><div class="rqer">${E((DS[0]||{}).err||'El link no es válido.')}</div>`;return}
  if(OKS.some(d=>d.test)&&!document.getElementById('tstbar'))document.body.insertAdjacentHTML('afterbegin','<div id="tstbar">🧪 ENTORNO DE PRUEBA</div>');
@@ -164,27 +176,17 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  /* Trabajos de los choferes del transporte (en cualquier unidad) cerca de este pedido: con eso el link controla
     que el chofer no esté en dos lados a la vez y que haya descansado (como el portal). */
  const BUSY=[];OKS.forEach(D=>(D.busy||[]).forEach(z=>{if(!BUSY.some(y=>y.dni===z.dni&&y.s===z.s&&y.e===z.e))BUSY.push(z)}));
- const rest=b=>Math.min(MAXH,b.e-b.s);
  /* segmentos del chofer: trabajos que ya tiene + lo elegido en los otros camiones de esta página + los tramos anteriores de este camión */
  function segsOf(dni,ui,before){const S=BUSY.filter(z=>z.dni===dni).map(z=>({s:z.s,e:z.e,u:z.u}));
   Object.keys(TM).forEach(k=>{if(+k===+ui)return;const nmU=U[k].u.tipo==='Chasis TPR'&&U[k].u.sm?U[k].u.sm:U[k].u.tr;(TM[k].rows||[]).forEach(r=>{if(r.dni===dni)S.push({s:r.s,e:r.e,u:nmU})})});
   (before||[]).forEach(r=>{if(r.dni===dni)S.push({s:r.s,e:r.e,u:'este camión'})});return S}
- /* jornadas: si entre dos trabajos no descansó lo que llevaba trabajado (máx. MAXH h), siguen siendo la misma jornada */
- function blocks(S){const B=[];S.slice().sort((a,b)=>a.s-b.s).forEach(a=>{const c=B[B.length-1];if(c&&a.s-c.e<rest(c)-1e-6){c.e=Math.max(c.e,a.e);if(a.me)c.me=1;c.L.push(a)}else B.push({s:a.s,e:a.e,me:a.me,L:[a]})});return B}
- /* desde cuándo viene la jornada del chofer si maneja desde t */
- function jsOf(ui,before,t,dni){if(!dni)return t;const B=blocks(segsOf(dni,ui,before).filter(z=>z.e<=t+1e-6)),b=B[B.length-1];return b&&t-b.e<rest(b)-1e-6?b.s:t}
- /* por qué el chofer no puede manejar de s a e en este camión ('' si puede); lim: máximo de jornada para este tramo */
- function whyNot(ui,before,dni,s,e,lim){const S=segsOf(dni,ui,before),nm=apel(nmOf(dni));
-  const ov=S.find(z=>z.s<e-1e-6&&z.e>s+1e-6);if(ov)return nm+' ya trabaja '+(ov.u==='este camión'?'en este camión':'en '+ov.u)+' de '+fL(ov.s)+' a '+fL(ov.e)+'.';
-  const B=blocks(S.concat([{s,e,me:1}])),b=B.find(x=>x.me);if(!b||b.e-b.s<=lim+1e-6)return '';
-  const P=blocks(S.filter(z=>z.e<=s+1e-6)).pop();
-  if(P&&s-P.e<rest(P)-1e-6)return nm+' terminó el '+fL(P.e)+(P.L[P.L.length-1].u&&P.L[P.L.length-1].u!=='este camión'?' en '+P.L[P.L.length-1].u:'')+' y necesita '+hsT(rest(P))+' h de descanso: está disponible desde el '+fL(P.e+rest(P))+'.';
-  const N=S.filter(z=>z.s>=e-1e-6).sort((a,b)=>a.s-b.s)[0];
-  if(N)return nm+' tiene otro trabajo desde el '+fL(N.s)+(N.u&&N.u!=='este camión'?' en '+N.u:'')+' y no llegaría a descansar.';
-  return nm+' quedaría con '+hsT(b.e-b.s)+' h de jornada (máximo '+hsT(lim)+' h).'}
+ /* desde cuándo viene la jornada del chofer si maneja desde t (regla única: inicioJornada) */
+ function jsOf(ui,before,t,dni){if(!dni)return t;return rgIni(segsOf(dni,ui,before),dni,t)}
+ /* por qué el chofer no puede manejar de s a e en este camión ('' si puede); lim: máximo de jornada para este tramo (regla única: restErr) */
+ function whyNot(ui,before,dni,s,e,lim){return rgWhy(segsOf(dni,ui,before),dni,apel(nmOf(dni)),s,e,lim,fL)}
  /* para el desplegable de choferes: si no puede arrancar a la hora t, hasta cuándo no está disponible */
  function busyLbl(ui,before,dni,t){const S=segsOf(dni,ui,before),ov=S.find(z=>z.s<=t+1e-6&&z.e>t+1e-6);if(ov)return ' (trabaja hasta el '+fL(ov.e)+')';
-  const P=blocks(S.filter(z=>z.e<=t+1e-6)).pop();if(P&&t-P.e<rest(P)-1e-6&&P.s+MAXH<=t+1-1e-6)return ' (descansa hasta el '+fL(P.e+rest(P))+')';return ''}
+  const P=rgPrev(S,dni,t);if(P&&t-P.e<P.des-1e-6&&P.s+MAXH<=t+1-1e-6)return ' (descansa hasta el '+fL(P.e+P.des)+')';return ''}
  /* bloques (horarios pedidos) de un camión: los fija Logística; entre bloque y bloque no le toca */
 const WN=u=>u.win&&u.win.length?u.win:[[u.s,u.e]];
 const unN=f=>{const a=(U.find(x=>x.u.f==f)||{}).u||null;if(a)return a.tipo==='Chasis TPR'&&a.sm?a.sm:a.tr;for(const x of U){const z=(x.u.alt||[]).find(q=>q.f==f);if(z)return z.tipo==='Chasis TPR'&&z.sm?z.sm:z.tr}return '?'};
