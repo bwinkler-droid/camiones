@@ -89,7 +89,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
    La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
-const PAGE_V=16,NEED_SRV='2026-11-10d';
+const PAGE_V=17,NEED_SRV='2026-11-10d';
 const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
 const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
@@ -138,13 +138,18 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const goes=u=>{const r=u.res||{};if(!u.res||!r.ok)return null;const T=r.tr||[],us=[...new Set(T.map(z=>z.u||''))];
   if(T.length&&us.length===1&&us[0])return {nm:us[0],all:1};if(r.ufN)return {nm:r.ufN,all:!us.some(x=>x)};return us.some(x=>x)?{nm:'',all:0}:null};
  const tmTxt=z=>{const a=fL(z.s),b=fL(z.e);return a+' a '+(a.slice(0,9)===b.slice(0,9)?b.slice(-5):b)};
- const resTxt=(D,u,r)=>{const g=goes(u),un=g&&g.nm?g.nm:(u.tipo==='Chasis TPR'&&u.sm?u.sm+' / '+u.tr:u.tr+(u.sm?' / '+u.sm:''));
+ /* patentes de una unidad: principal y segunda (en chasis TPR manda el semi) */
+ const plOf=v=>{const t=v.tipo==='Chasis TPR'&&v.sm;return {a:t?v.sm:v.tr,b:t?v.tr:(v.sm||'')}};
+ const plTxt=v=>{const p=plOf(v);return p.a+(p.b?' / '+p.b:'')};
+ /* la unidad que va: con sus dos patentes si el servidor las mandó (u.un), si no solo el nombre corto */
+ const goesPl=(u,g)=>g&&g.nm?((u.un||{})[g.nm]?plOf(u.un[g.nm]):{a:g.nm,b:''}):null;
+ const resTxt=(D,u,r)=>{const g=goes(u),gp=goesPl(u,g),un=gp?gp.a+(gp.b?' / '+gp.b:''):plTxt(u);
   return [D.op+(D.bq?' '+D.bq:'')+' · '+un].concat(r.tr.map(z=>'• '+z.n+': '+tmTxt(z).replace(/ · /g,' ')+(z.u&&!(g&&g.all)?' (en '+z.u+')':''))).join('\n')};
  const resList=(D,u,r)=>{const g=goes(u);return `<div class="rqres">${r.tr.map(z=>`<div><b>${E(z.n)}${z.u&&!(g&&g.all)?` <small style="font-weight:600">· en ${E(z.u)}</small>`:''}</b><span>${E(tmTxt(z))}</span></div>`).join('')}<button type="button" class="rqcp" data-cp="${E(resTxt(D,u,r))}">📋 Copiar para mandar a los choferes</button></div>`};
  const tpL=t=>t==='Playo'?'playo':t==='Batea'?'batea':t==='Chasis TPR'?'chasis TPR':String(t||'').toLowerCase();
  const reqL=r=>Array.isArray(r)&&r.length?r.map(t=>tpL(t)+(t==='Chasis TPR'?'':'s')).join(' o ').replace('chasis TPR','chasis TPR'):'el tipo de unidad citado';
- const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',g=goes(u),nm0=tpr&&u.sm?u.sm:u.tr,nm=g&&g.nm?g.nm:nm0,sub=g&&g.nm?'':tpr&&u.sm?u.tr:(u.sm||'');
-   return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>${g&&g.nm?`<div class="rqp" style="margin-top:2px">🔁 Va en lugar de <b>${E(nm0)}${u.sm&&!tpr?' / '+E(u.sm):tpr&&u.sm?' / '+E(u.tr):''}</b> (la unidad citada)</div>`:''}
+ const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',g=goes(u),gp=goesPl(u,g),nm0=tpr&&u.sm?u.sm:u.tr,nm=gp?gp.a:nm0,sub=gp?gp.b:tpr&&u.sm?u.tr:(u.sm||'');
+   return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>${g&&g.nm?`<div class="rqp" style="margin-top:2px">🔁 Va en lugar de <b>${E(plTxt(u))}</b> (la unidad citada)</div>`:''}
    <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total</span></div>
    <div class="rqp">Chofer propuesto: <b>${u.tent?E(u.tent):'a definir por el transporte'}</b></div>
    ${u.prev&&!u.res?`<div class="rqprev">🕘 Esta unidad viene trabajando con <b>${E(u.prev.n)}</b> desde el ${E(fL(u.prev.js))}${u.prev.pe<u.s-1e-6?' (terminó el '+E(fL(u.prev.pe))+')':''}. Si sigue él, se cuenta la jornada que ya trae.</div>`:''}
