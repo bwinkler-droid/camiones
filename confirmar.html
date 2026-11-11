@@ -89,7 +89,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
    La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
-const PAGE_V=15,NEED_SRV='2026-11-10d';
+const PAGE_V=16,NEED_SRV='2026-11-10d';
 const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
 const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
@@ -133,17 +133,22 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  const relHtml=u=>{if(!(u.h>MAXH))return '';const ch=[];for(let t=u.s+MAXH,n=1;t<u.e-1e-9&&ch.length<8;t+=MAXH,n++)ch.push({t,who:n%2?'entra el que releva':'vuelve el que arrancó'});
    return `<div class="rqrl"><span class="t">⚠ Turno de ${fmtHs(u.h)} h: necesita relevo</span>Un chofer no puede manejar más de ${MAXH} h seguidas. El que arranca trabaja hasta el <b>${E(fL(ch[0].t))}</b> y ahí lo reemplaza el que releva.${ch.length>1?`<ul>${ch.map(c=>`<li><b>${E(fL(c.t))}</b>: ${c.who}</li>`).join('')}</ul>`:''}</div>`};
  /* respuesta ya enviada: un renglón por tramo con día y hora, y un botón para copiarla (por ejemplo, para mandársela a los choferes) */
+ /* unidad que efectivamente va, según la respuesta: si el transporte cambió el camión (toda la unidad o todos los tramos con
+    el mismo), esa pasa a ser la que se muestra arriba, con «en lugar de» la citada; si usó varios, cada tramo dice en cuál va */
+ const goes=u=>{const r=u.res||{};if(!u.res||!r.ok)return null;const T=r.tr||[],us=[...new Set(T.map(z=>z.u||''))];
+  if(T.length&&us.length===1&&us[0])return {nm:us[0],all:1};if(r.ufN)return {nm:r.ufN,all:!us.some(x=>x)};return us.some(x=>x)?{nm:'',all:0}:null};
  const tmTxt=z=>{const a=fL(z.s),b=fL(z.e);return a+' a '+(a.slice(0,9)===b.slice(0,9)?b.slice(-5):b)};
- const resTxt=(D,u,r)=>[D.op+(D.bq?' '+D.bq:'')+' · '+(u.tipo==='Chasis TPR'&&u.sm?u.sm+' / '+u.tr:u.tr+(u.sm?' / '+u.sm:''))].concat(r.tr.map(z=>'• '+z.n+': '+tmTxt(z).replace(/ · /g,' '))).join('\n');
- const resList=(D,u,r)=>`<div class="rqres">${r.tr.map(z=>`<div><b>${E(z.n)}</b><span>${E(tmTxt(z))}</span></div>`).join('')}<button type="button" class="rqcp" data-cp="${E(resTxt(D,u,r))}">📋 Copiar para mandar a los choferes</button></div>`;
+ const resTxt=(D,u,r)=>{const g=goes(u),un=g&&g.nm?g.nm:(u.tipo==='Chasis TPR'&&u.sm?u.sm+' / '+u.tr:u.tr+(u.sm?' / '+u.sm:''));
+  return [D.op+(D.bq?' '+D.bq:'')+' · '+un].concat(r.tr.map(z=>'• '+z.n+': '+tmTxt(z).replace(/ · /g,' ')+(z.u&&!(g&&g.all)?' (en '+z.u+')':''))).join('\n')};
+ const resList=(D,u,r)=>{const g=goes(u);return `<div class="rqres">${r.tr.map(z=>`<div><b>${E(z.n)}${z.u&&!(g&&g.all)?` <small style="font-weight:600">· en ${E(z.u)}</small>`:''}</b><span>${E(tmTxt(z))}</span></div>`).join('')}<button type="button" class="rqcp" data-cp="${E(resTxt(D,u,r))}">📋 Copiar para mandar a los choferes</button></div>`};
  const tpL=t=>t==='Playo'?'playo':t==='Batea'?'batea':t==='Chasis TPR'?'chasis TPR':String(t||'').toLowerCase();
  const reqL=r=>Array.isArray(r)&&r.length?r.map(t=>tpL(t)+(t==='Chasis TPR'?'':'s')).join(' o ').replace('chasis TPR','chasis TPR'):'el tipo de unidad citado';
- const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',nm=tpr&&u.sm?u.sm:u.tr,sub=tpr&&u.sm?u.tr:(u.sm||'');
-   return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>
+ const unitHtml=(D,u)=>{const i=U.length;U.push({D,u});const r=u.res||{},yes=r.ok!==false,two=u.h>MAXH,tpr=u.tipo==='Chasis TPR',g=goes(u),nm0=tpr&&u.sm?u.sm:u.tr,nm=g&&g.nm?g.nm:nm0,sub=g&&g.nm?'':tpr&&u.sm?u.tr:(u.sm||'');
+   return `<div class="rqu ${u.res?(r.ok?'y':'n'):''}" data-i="${i}">${opLine(D)}<div class="rqt">🚚 ${E(nm)}${sub?`<small>${E(sub)}</small>`:''}${(u.t||D.name)?`<span class="tn">${E(u.t||D.name)}</span>`:''}</div>${g&&g.nm?`<div class="rqp" style="margin-top:2px">🔁 Va en lugar de <b>${E(nm0)}${u.sm&&!tpr?' / '+E(u.sm):tpr&&u.sm?' / '+E(u.tr):''}</b> (la unidad citada)</div>`:''}
    <div class="rqdh"><span class="l">Desde</span><span class="v">${E(u.sD)} · <b>${E(u.sH)}</b></span><span class="l">Hasta</span><span class="v">${E(u.eD)} · <b>${E(u.eH)}</b></span><span class="tot">⏱ ${fmtHs(u.h)} h en total</span></div>
    <div class="rqp">Chofer propuesto: <b>${u.tent?E(u.tent):'a definir por el transporte'}</b></div>
    ${u.prev&&!u.res?`<div class="rqprev">🕘 Esta unidad viene trabajando con <b>${E(u.prev.n)}</b> desde el ${E(fL(u.prev.js))}${u.prev.pe<u.s-1e-6?' (terminó el '+E(fL(u.prev.pe))+')':''}. Si sigue él, se cuenta la jornada que ya trae.</div>`:''}
-   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok&&r.ufN?'<b>🔁 Va '+E(r.ufN)+'</b> · ':''}${r.ok?(r.late?'⏰ Respondido tarde':'✔ Ya respondido')+(r.tr&&r.tr.length?'':': arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>${r.ok&&r.tr&&r.tr.length?resList(D,u,r):''}`:''}
+   ${u.res?`<span class="rqst ${r.ok?'y':'n'}">${r.ok?(r.late?'⏰ Respondido tarde':'✔ Ya respondido')+(r.tr&&r.tr.length?'':': arranca '+E(r.a)+(r.b?' · releva '+E(r.b):'')):'✖ Ya respondido: no puede'}</span>${r.ok&&r.tr&&r.tr.length?resList(D,u,r):''}`:''}
    ${D.closed?'':`<div class="rqo"><label class="y ${yes?'on':''}"><input type="radio" name="ok${i}" value="1" ${yes?'checked':''}>✅ Puedo</label><label class="n ${yes?'':'on'}"><input type="radio" name="ok${i}" value="0" ${yes?'':'checked'}>❌ No puedo</label></div>
    <div class="rqf rqy" style="display:${yes?'block':'none'}"><div class="rqtl" id="tl${i}"></div><div class="rqtlx"><span>${E(fL(u.s))}</span><span>${E(fL(u.e))}</span></div><div id="tms${i}" data-u="${i}"></div><div class="rqtot" id="tot${i}"></div>
     ${(u.trs||[]).length>1?`<details class="rqpl"><summary id="ufs${i}">🔁 ¿Engancharon otro tractor? Elegilo de la lista</summary>
