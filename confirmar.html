@@ -89,7 +89,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
    La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
-const PAGE_V=19,NEED_SRV='2026-11-10d';
+const PAGE_V=20,NEED_SRV='2026-11-10d';
 const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
 const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
@@ -235,7 +235,7 @@ function tmView(i){const {u}=U[i],R=TM[i].rows,er=tmErrs(i),T=u.e-u.s;
   if(r.no)return `<div style="flex:0 0 ${h/T*100}%;background:rgba(239,68,68,.18);color:#dc2626" title="No puedo este turno"><b>No</b><span>${hsT(h)} h</span></div>`;
   const c=tmCol(i,r.dni),st=er[n]?'background:rgba(239,68,68,.18);color:#dc2626':c?'background:'+c[0]+';color:'+c[1]:'background:rgba(127,127,127,.2);color:var(--mut)',o=ufOf(i,r)!=u.f;
   return `<div style="flex:0 0 ${h/T*100}%;${st}" title="${E(nmOf(r.dni)||'Sin chofer')} · ${E(unN(ufOf(i,r)))} · ${E(fL(r.s))} a ${E(fL(r.e))}"><b>${E(apel(nmOf(r.dni)))}</b><span>${o?E(unN(ufOf(i,r)))+' · ':''}${hsT(h)} h${r.e-r.js>MAXH+1e-6?' · +tol.':''}</span></div>`}).join('');
- R.forEach((r,n)=>{const b=document.getElementById('tm'+i+'_'+n);if(!b||r.gap||r.no)return;const c=tmCol(i,r.dni);b.style.borderColor=er[n]?'#ef4444':c?c[0]:'';b.querySelector('.rqdot').style.background=c?c[0]:'';b.querySelector('.rqte').textContent=er[n]?'⚠ '+er[n]:'';b.querySelector('.rqro').textContent=r.dni||'—'});
+ R.forEach((r,n)=>{const b=document.getElementById('tm'+i+'_'+n);if(!b||r.gap||r.no)return;const c=tmCol(i,r.dni);b.style.borderColor=er[n]?'#ef4444':c?c[0]:'';b.querySelector('.rqdot').style.background=c?c[0]:'';b.querySelector('.rqte').textContent=er[n]?'⚠ '+er[n]:''});
  const RR=real(R),L=[];RR.forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});
  document.getElementById('tot'+i).innerHTML=RR.length>1?L.map(d=>{const X=RR.filter(r=>r.dni===d),c=tmCol(i,d);return `<span class="rqdot" style="background:${c[0]}"></span><b>${E(nmOf(d))}</b>: ${hsT(X.reduce((a,r)=>a+r.e-r.s,0))} h en ${X.length} tramo${X.length>1?'s':''}`}).join('<br>'):''}
 const MOTN={chofer:'No tengo chofer',unidad:'No tengo camión disponible',otro:'Otro'};
