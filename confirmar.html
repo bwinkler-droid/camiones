@@ -89,7 +89,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* versión de esta página: el servidor rechaza las páginas viejas (RQ_PAGE_MIN) y esta página avisa si el servidor todavía no se actualizó.
    La misma página sirve en GitHub Pages (?r=código&s=servidor) y como archivo "Confirmar" del proyecto (el servidor le pasa __RQK y __SRV). */
-const PAGE_V=20,NEED_SRV='2026-11-10d';
+const PAGE_V=21,NEED_SRV='2026-11-10d';
 const QS=new URLSearchParams(location.search),RK=(window.__RQK||QS.get('r')||'').replace(/[^A-Za-z0-9.]/g,''),SID=(QS.get('s')||'').replace(/[^A-Za-z0-9_-]/g,'');
 const SRV=window.__SRV||(SID?'https://script.google.com/macros/s/'+SID+'/exec':'');
 async function api(a,p={}){const r=await fetch(SRV,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({a,pv:PAGE_V,...p}),redirect:'follow',credentials:'omit'});
@@ -178,7 +178,8 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
  /* ---------- Tramos de choferes por camión ----------
     Cada tramo: quién maneja y hasta qué hora (cada 1 h desde el inicio del tramo). El siguiente empieza donde termina el anterior.
     Máximo MAXH h de jornada por tramo (contando lo que ya trae el chofer si sigue de una asignación anterior de la unidad).
-    Solo el último tramo (el que llega al fin) puede llegar a MAXH + TOLH h: queda para que Logística lo apruebe.
+    La tolerancia (el último tramo, el que llega al fin, puede llegar a MAXH + TOLH h) la decide Logística: el link la ofrece solo en el
+    camión y el horario en que Logística la planificó (u.tolw: los fines de bloque con tolerancia). Queda aprobada.
     El chofer que vuelve tiene que haber descansado lo mismo que trabajó (máximo MAXH h). */
  const TOLH=OKS[0].tolh||0,PAL=[['#85B7EB','#042C53'],['#EF9F27','#412402'],['#AFA9EC','#26215C'],['#97C459','#173404'],['#ED93B1','#4B1528']];
  const nmOf=dni=>{const z=DL.find(y=>y.dni===dni);return z?z.n:''},apel=n=>{const w=String(n||'').split(' ')[0]||'';return w?w[0]+w.slice(1).toLowerCase():'A definir'};
@@ -201,10 +202,12 @@ async function rqPage(k){document.title='TPR · Confirmación de camiones';if(!w
 const WN=u=>u.win&&u.win.length?u.win:[[u.s,u.e]];
 const unN=f=>{const a=(U.find(x=>x.u.f==f)||{}).u||null;if(a)return a.tipo==='Chasis TPR'&&a.sm?a.sm:a.tr;for(const x of U){const z=(x.u.alt||[]).find(q=>q.f==f);if(z)return z.tipo==='Chasis TPR'&&z.sm?z.sm:z.tr}return '?'};
 const real=R=>R.filter(r=>!r.gap&&!r.no);
+/* ¿Logística planificó la tolerancia para el bloque de este camión que termina en E? */
+const tolOk=(ui,E)=>!!(U[ui]&&(U[ui].u.tolw||[]).some(x=>Math.abs(x-E)<1e-6));
 function tmOpts(ui,before,t,dni,E){const js=jsOf(ui,before,t,dni),lim=Math.min(js+MAXH,E),O=[];
  for(let k=1;t+k<lim-1e-6;k++)O.push({v:t+k,l:fL(t+k)});
  if(lim>t+1e-6)O.push({v:lim,l:fL(lim)+(Math.abs(lim-E)<1e-6?' (fin del turno)':' (máx. '+MAXH+' h)')});
- if(TOLH&&E>lim+1e-6&&E-js<=MAXH+TOLH+1e-6)O.push({v:E,l:fL(E)+' (fin · tolerancia)',tol:E-js});
+ if(TOLH&&tolOk(ui,E)&&E>lim+1e-6&&E-js<=MAXH+TOLH+1e-6)O.push({v:E,l:fL(E)+' (fin · tolerancia planificada por Logística)',tol:E-js});
  return O}
 /* arma la lista de tramos del camión: por cada bloque, tramos encadenados (o "no puedo este turno"); entre bloques, el hueco */
 function tmNorm(i){const {u}=U[i],st=TM[i],W=WN(u),o=[];st.B=st.B||{};st.no=st.no||{};
@@ -226,7 +229,7 @@ function unitClash(i,n){const r=TM[i].rows[n],f=ufOf(i,r);for(const k of Object.
   if(ufOf(+k,x)==f&&x.s<r.e-1e-6&&x.e>r.s+1e-6)return unN(f)+' ya va '+(+k===i?'en otro tramo de este lugar':'en otro lugar')+' de '+fL(x.s)+' a '+fL(x.e)+'.'}}return ''}
 function tmErrs(i){const R=TM[i].rows;return R.map((r,n)=>{if(r.gap)return '';if(r.no)return '';if(!r.dni)return 'Elegí el chofer de este tramo.';
  const p=n?R[n-1]:null;if(p&&!p.gap&&!p.no&&p.dni===r.dni&&ufOf(i,p)==ufOf(i,r))return 'Es el mismo chofer y el mismo camión del tramo anterior: extendé el anterior o elegí otro chofer.';
- const last=Math.abs(r.e-r.E)<1e-6,w=whyNot(i,real(R.slice(0,n)),r.dni,r.s,r.e,last?MAXH+TOLH:MAXH);if(w)return w;
+ const last=Math.abs(r.e-r.E)<1e-6,w=whyNot(i,real(R.slice(0,n)),r.dni,r.s,r.e,last&&tolOk(i,r.E)?MAXH+TOLH:MAXH);if(w)return w;
  const uw=unitWhy(i,r)||unitClash(i,n);if(uw)return uw;
  if(!r.O.length)return apel(nmOf(r.dni))+' ya cumplió '+MAXH+' h de jornada: elegí otro chofer para este tramo.';return ''})}
 function tmCol(i,dni){const L=[];real(TM[i].rows).forEach(r=>{if(r.dni&&L.indexOf(r.dni)<0)L.push(r.dni)});const k=L.indexOf(dni);return k<0?null:PAL[k%PAL.length]}
